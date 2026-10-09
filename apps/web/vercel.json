@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd ../.. && pnpm build --filter @spmh/web",
+  "installCommand": "cd ../.. && pnpm install",
+  "outputDirectory": ".vercel/output",
+  "framework": "astro"
+}

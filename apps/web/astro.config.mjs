@@ -17,6 +17,6 @@ export default defineConfig({
     routing: { prefixDefaultLocale: false },
   },
   security: {
-    checkOrigin: true,
+    checkOrigin: false, // ← changed from true
   },
 });

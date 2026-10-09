@@ -1,0 +1,40 @@
+---
+import { createSupabaseServerClient } from '../../lib/supabase-ssr';
+import { listPartnerships } from '../../lib/partnership-queries';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import PartnershipsAdminDashboard from '../../islands/PartnershipsAdminDashboard.tsx';
+
+const user = Astro.locals.user;
+const supabase = createSupabaseServerClient(Astro);
+const partnerships = await listPartnerships(supabase);
+---
+
+<AdminLayout
+  title='Partnerships'
+  active='partnerships'
+  userEmail={user?.email ?? ''}>
+  <div class='mb-6 flex items-start justify-between gap-6 flex-wrap'>
+    <div>
+      <h1 class='text-2xl font-black tracking-tight mb-1'>
+        Partnership Inquiries
+      </h1>
+      <p class='text-sm text-gray-500'>
+        Organisations who have reached out via the public site.
+      </p>
+    </div>
+    <div class='flex gap-2'>
+      <a
+        href='/api/export-partnerships/csv'
+        class='px-4 py-2.5 bg-white border border-[var(--color-border-soft)] text-[var(--color-ink)] text-xs font-bold rounded-xl hover:border-[var(--color-brand)] transition-colors'>
+        CSV
+      </a>
+      <a
+        href='/api/export-partnerships/xlsx'
+        class='px-4 py-2.5 bg-[var(--color-brand)] text-white text-xs font-bold rounded-xl hover:bg-[var(--color-brand-hover)] transition-colors'>
+        Excel
+      </a>
+    </div>
+  </div>
+
+  <PartnershipsAdminDashboard client:load initial={partnerships} />
+</AdminLayout>

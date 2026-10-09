@@ -2,6 +2,8 @@
 import '../../styles/global.css';
 
 const errorMsg = Astro.url.searchParams.get('error');
+const reason = Astro.url.searchParams.get('reason');
+const idleLogout = reason === 'idle';
 ---
 
 <html lang='en'>
@@ -18,15 +20,13 @@ const errorMsg = Astro.url.searchParams.get('error');
       <!-- ══ LEFT — Hero panel ═════════════════════════════════ -->
       <aside
         class='relative hidden lg:flex flex-col justify-between overflow-hidden bg-[#1c1c1e]'>
-        <!-- Background image -->
         <img
-          src='/public/img/8.jpg'
+          src='/img/8.jpg'
           alt=''
           class='absolute inset-0 w-full h-full object-cover opacity-60'
           aria-hidden='true'
         />
 
-        <!-- Overlays -->
         <div
           class='absolute inset-0 bg-gradient-to-br from-[#860f0f]/70 via-[#1c1c1e]/60 to-[#1c1c1e]/95'
           aria-hidden='true'>
@@ -37,12 +37,20 @@ const errorMsg = Astro.url.searchParams.get('error');
           aria-hidden='true'>
         </div>
 
-        <!-- Top brand -->
         <div class='relative z-10 p-12'>
           <div class='flex items-center gap-3'>
             <div
-              class='w-11 h-11 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center'>
-              <span class='text-white font-black text-lg'>S</span>
+              class='w-11 h-11 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center overflow-hidden'>
+              <img
+                src='/logos/logo.png'
+                alt='SPMH'
+                class='w-full h-full object-contain p-1'
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+              />
+              <span
+                class='text-white font-black text-lg hidden'
+                style='display:none;'>S</span
+              >
             </div>
             <div>
               <p class='text-white font-bold tracking-tight text-sm'>
@@ -55,7 +63,6 @@ const errorMsg = Astro.url.searchParams.get('error');
           </div>
         </div>
 
-        <!-- Centre headline -->
         <div class='relative z-10 px-12 max-w-lg'>
           <p
             class='text-[10px] font-bold uppercase tracking-[0.3em] text-white/50 mb-4'>
@@ -63,8 +70,7 @@ const errorMsg = Astro.url.searchParams.get('error');
           </p>
           <h1
             class='text-4xl xl:text-5xl font-black text-white leading-[1.1] tracking-tight mb-6'>
-            Where healing<br />
-            meets purpose.
+            Recruitment with purpose.
           </h1>
           <p class='text-white/70 text-sm leading-relaxed max-w-md'>
             Manage job postings, review applicants, and build the team that
@@ -72,7 +78,6 @@ const errorMsg = Astro.url.searchParams.get('error');
           </p>
         </div>
 
-        <!-- Bottom trust bar -->
         <div class='relative z-10 p-12'>
           <div class='flex items-center gap-6 text-white/60 text-[11px]'>
             <div class='flex items-center gap-2'>
@@ -99,19 +104,19 @@ const errorMsg = Astro.url.searchParams.get('error');
       <!-- ══ RIGHT — Form panel ═════════════════════════════════ -->
       <main class='flex items-center justify-center px-6 py-12 lg:py-0'>
         <div class='w-full max-w-sm'>
-          <!-- Mobile brand (hidden on desktop) -->
-          <div class='lg:hidden text-center mb-8'>
+          <!-- Brand block: logo + name -->
+          <div>
             <div
-              class='inline-flex w-12 h-12 rounded-xl bg-[var(--color-brand)] items-center justify-center mb-3'>
-              <span class='text-white font-black text-lg'>S</span>
+              class='w-46 h-46 rounded-2xl mx-auto text-center flex items-center justify-center overflow-hidden'>
+              <img
+                src='/gallery/bg.png'
+                alt="St. Paul's Mission Hospital"
+                class='w-full h-full object-contain'
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+              />
             </div>
-            <p
-              class='text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand)]'>
-              St. Paul's Mission Hospital
-            </p>
           </div>
 
-          <!-- Form header -->
           <div class='mb-8'>
             <h2 class='text-3xl font-black tracking-tight mb-2'>Sign in</h2>
             <p class='text-sm text-gray-500'>
@@ -119,6 +124,31 @@ const errorMsg = Astro.url.searchParams.get('error');
             </p>
           </div>
 
+          <!-- Idle-logout notice -->
+          {
+            idleLogout && !errorMsg && (
+              <div class='mb-5 flex items-start gap-3 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3'>
+                <svg
+                  class='w-4 h-4 shrink-0 mt-0.5'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                  stroke-width='2'>
+                  <path
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                    d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                  />
+                </svg>
+                <span>
+                  You were signed out after 10 minutes of inactivity. Please
+                  sign in again.
+                </span>
+              </div>
+            )
+          }
+
+          <!-- Error notice -->
           {
             errorMsg && (
               <div class='mb-5 flex items-start gap-3 text-xs text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3'>
@@ -189,7 +219,6 @@ const errorMsg = Astro.url.searchParams.get('error');
             </button>
           </form>
 
-          <!-- Footer -->
           <div class='mt-10 pt-8 border-t border-[var(--color-border-soft)]'>
             <p class='text-[11px] text-gray-400 leading-relaxed text-center'>
               Access restricted to authorised HR staff. If you cannot sign in,

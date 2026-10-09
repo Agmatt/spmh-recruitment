@@ -90,18 +90,21 @@ export default function ApplicationsTable({
     }
 
     async function deleteApp(id: string, name: string) {
-        if (!confirm(`Delete application from ${name}? This cannot be undone.`)) return;
-        setBusyId(id);
-        try {
-            const res = await fetch(`/api/applications/${id}/delete`, { method: 'POST' });
-            if (!res.ok) throw new Error('Failed');
-            setApps((curr) => curr.filter((a) => a.id !== id));
-        } catch {
-            alert('Could not delete. Please try again.');
-        } finally {
-            setBusyId(null);
-        }
+  if (!confirm(`Delete application from ${name}? This cannot be undone.`)) return;
+  setBusyId(id);
+  try {
+    const res = await fetch(`/api/applications/${id}/delete`, { method: 'POST' });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(body.error ?? `HTTP ${res.status}`);
     }
+    setApps((curr) => curr.filter((a) => a.id !== id));
+  } catch (err) {
+    alert(`Could not delete: ${err instanceof Error ? err.message : 'Unknown error'}`);
+  } finally {
+    setBusyId(null);
+  }
+}
 
     function openCv(id: string) {
         window.open(`/api/cv/${id}`, '_blank', 'noopener');

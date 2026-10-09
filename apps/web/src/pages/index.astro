@@ -1,103 +1,393 @@
 ---
-import '../styles/global.css';
 import { supabase } from '../lib/supabase';
 import type { JobWithDepartment } from '../lib/types';
+import PublicLayout from '../layouts/PublicLayout.astro';
 
 const { data, error } = await supabase
   .from('job_postings')
-  .select(
-    `
-    *,
-    departments ( slug, label )
-  `,
-  )
+  .select('*, departments ( slug, label )')
   .eq('status', 'published')
   .order('published_at', { ascending: false });
 
 if (error) console.error('[index.astro] Supabase error:', error);
-
 const jobs = (data ?? []) as JobWithDepartment[];
+
+const jobCount = jobs.length;
+const jobCountLabel =
+  jobCount === 0
+    ? 'No positions currently listed'
+    : jobCount === 1
+      ? 'One position'
+      : `${jobCount} positions`;
+
+const employmentLabels: Record<string, string> = {
+  full_time: 'Full time',
+  part_time: 'Part time',
+  contract: 'Contract',
+  internship: 'Internship',
+  locum: 'Locum',
+};
+
+const preparedJobs = jobs.map((job) => {
+  const closesDate = job.closes_at ? new Date(job.closes_at) : null;
+  let daysLeft: number | null = null;
+  let isClosingSoon = false;
+  if (closesDate) {
+    daysLeft = Math.ceil((closesDate.getTime() - Date.now()) / 86400000);
+    if (daysLeft > 0 && daysLeft < 8) isClosingSoon = true;
+  }
+  const postedDate = job.published_at ? new Date(job.published_at) : null;
+  const postedLabel = postedDate
+    ? postedDate.toLocaleDateString('en-KE', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : null;
+  return {
+    id: job.id,
+    slug: job.slug,
+    title: job.title,
+    summary: job.summary,
+    location: job.location,
+    departmentLabel: job.departments?.label ?? null,
+    employmentLabel:
+      employmentLabels[job.employment_type] ?? job.employment_type,
+    isClosingSoon,
+    daysLeft,
+    postedLabel,
+  };
+});
+
+const provisions = [
+  {
+    n: '01',
+    title: 'Patient-centred clinical practice',
+    body: 'Every role at the hospital contributes directly to the delivery of quality care for the communities of Homa Bay County.',
+  },
+  {
+    n: '02',
+    title: 'Continuing professional development',
+    body: 'Staff have access to structured clinical pathways, mentorship from senior practitioners, and regular Continuing Medical Education.',
+  },
+  {
+    n: '03',
+    title: 'Multidisciplinary work environment',
+    body: 'Clinical, administrative, and support teams operate in close coordination across all hospital departments.',
+  },
+  {
+    n: '04',
+    title: 'Terms of service',
+    body: 'Remuneration, medical cover, leave entitlements, and performance review frameworks are documented and applied consistently to all staff.',
+  },
+];
+
+const today = new Date().toLocaleDateString('en-KE', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalOrganization',
+  name: "St. Paul's Mission Hospital",
+  url: 'https://www.spmh.co.ke',
+  logo: 'https://recruitment.spmh.co.ke/spmh-logo.png',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Homa Bay',
+    addressCountry: 'KE',
+  },
+};
+
+const jobListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: preparedJobs.map((job, idx) => ({
+    '@type': 'ListItem',
+    position: idx + 1,
+    url: `https://recruitment.spmh.co.ke/jobs/${job.slug}`,
+  })),
+};
 ---
 
-<html lang='en'>
-  <head>
-    <meta charset='UTF-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <title>Careers at St. Paul's Mission Hospital</title>
-    <meta
-      name='description'
-      content="Explore medical, clinical, and administrative opportunities at St. Paul's Mission Hospital in Homa Bay."
-    />
-    <link rel='icon' type='image/png' href='/file.svg' />
-  </head>
-  <body class='min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)]'>
-    <main class='max-w-5xl mx-auto px-6 py-16'>
-      <header class='mb-14'>
-        <p
-          class='text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand)] mb-3'>
-          St. Paul's Mission Hospital
-        </p>
-        <h1 class='text-5xl font-black tracking-tight'>Careers</h1>
-        <p class='mt-4 text-gray-600 max-w-2xl'>
-          Build a meaningful career in healthcare. Explore our current openings
-          below.
-        </p>
-      </header>
+<PublicLayout
+  title="Careers | St. Paul's Mission Hospital"
+  description="Current employment opportunities at St. Paul's Mission Hospital, Homa Bay, Kenya. Applications from qualified healthcare and administrative professionals are welcome."
+  canonicalPath='/'
+>
+  <script type='application/ld+json' set:html={JSON.stringify(orgSchema)} />
+  <script type='application/ld+json' set:html={JSON.stringify(jobListSchema)} />
 
-      <section>
-        <div class='flex items-baseline justify-between mb-6'>
-          <h2
-            class='text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand)]'>
-            Current Openings
-          </h2>
-          <span class='text-xs text-gray-400'>
-            {jobs.length}
-            {jobs.length === 1 ? 'role' : 'roles'}
-          </span>
+  <!-- ══ HERO ═══════════════════════════════════════════════════ -->
+  <section class='border-b border-[var(--color-border-soft)]'>
+    <div class='max-w-6xl mx-auto px-6 sm:px-10 pt-16 sm:pt-24 pb-12 sm:pb-16'>
+      <p
+        class='text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--color-brand)]'
+      >
+        Careers
+      </p>
+
+      <h1
+        class='mt-5 text-[2rem] sm:text-5xl lg:text-[3.25rem] font-black tracking-[-0.025em] leading-[1.08] max-w-4xl text-[var(--color-ink)]'
+      >
+        Employment at St.&nbsp;Paul's Mission Hospital.
+      </h1>
+
+      <p
+        class='mt-6 text-[15px] sm:text-[17px] text-gray-600 leading-[1.7] max-w-2xl'
+      >
+        St. Paul's Mission Hospital is a healthcare institution serving Homa
+        Bay County and the surrounding region. Qualified professionals are
+        invited to review the current openings listed below and submit
+        applications through the official recruitment portal.
+      </p>
+
+      <dl
+        class='mt-12 pt-8 border-t border-[var(--color-border-soft)] grid grid-cols-2 sm:grid-cols-3 gap-y-6 gap-x-8 max-w-3xl'
+      >
+        <div>
+          <dt
+            class='text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mb-1.5'
+          >
+            Vacancies
+          </dt>
+          <dd class='text-[14px] sm:text-[15px] font-semibold text-[var(--color-ink)]'>
+            {jobCountLabel}
+          </dd>
         </div>
+        <div>
+          <dt
+            class='text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mb-1.5'
+          >
+            Location
+          </dt>
+          <dd class='text-[14px] sm:text-[15px] font-semibold text-[var(--color-ink)]'>
+            Homa Bay, Kenya
+          </dd>
+        </div>
+        <div class='col-span-2 sm:col-span-1'>
+          <dt
+            class='text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mb-1.5'
+          >
+            Register updated
+          </dt>
+          <dd class='text-[14px] sm:text-[15px] font-semibold text-[var(--color-ink)]'>
+            {today}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
 
-        {
-          jobs.length === 0 ? (
-            <div class='bg-white border border-[var(--color-border-soft)] rounded-2xl p-10 text-center'>
-              <p class='text-gray-500'>
-                No current openings. Please check back soon.
+  <!-- ══ OPEN POSITIONS ═════════════════════════════════════════ -->
+  <section
+    id='openings'
+    class='bg-white border-b border-[var(--color-border-soft)]'
+  >
+    <div class='max-w-6xl mx-auto px-6 sm:px-10 py-16 sm:py-24'>
+      <div class='mb-8 sm:mb-10'>
+        <h2
+          class='text-[1.35rem] sm:text-3xl font-black tracking-[-0.02em] text-[var(--color-ink)] mb-2'
+        >
+          Current vacancies
+        </h2>
+        <p class='text-[13px] sm:text-sm text-gray-500 leading-relaxed max-w-2xl'>
+          Each listing includes the full job description, requirements, and
+          instructions for submission.
+        </p>
+      </div>
+
+      {
+        preparedJobs.length === 0 ? (
+          <div class='border border-[var(--color-border-soft)] rounded-xl p-6 sm:p-10 max-w-2xl'>
+            <p class='text-sm font-semibold text-[var(--color-ink)] mb-2'>
+              No positions are currently open.
+            </p>
+            <p class='text-[13px] text-gray-500 leading-relaxed'>
+              The Hospital accepts speculative applications on an ongoing basis.
+              Send submissions to the Human Resources Department at{' '}
+              <a
+                href='mailto:recruitment@spmh.co.ke'
+                class='text-[var(--color-brand)] underline underline-offset-4 decoration-1 hover:decoration-2'
+              >
+                recruitment@spmh.co.ke
+              </a>
+              .
+            </p>
+          </div>
+        ) : (
+          <ul class='space-y-3'>
+            {preparedJobs.map((job) => (
+              <li>
+                <a
+                  href={`/jobs/${job.slug}`}
+                  class='group block border border-[var(--color-border-soft)] rounded-xl p-5 sm:p-6 hover:border-[var(--color-brand)] hover:shadow-[0_2px_16px_-8px_rgba(134,15,15,0.25)] transition-all duration-200'
+                >
+                  <!-- Header row: department + title + chevron -->
+                  <div class='flex items-start justify-between gap-4'>
+                    <div class='min-w-0 flex-1'>
+                      {job.departmentLabel && (
+                        <p
+                          class='text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-brand)] mb-2'
+                        >
+                          {job.departmentLabel}
+                        </p>
+                      )}
+                      <h3
+                        class='text-[16px] sm:text-[18px] font-bold tracking-[-0.01em] text-[var(--color-ink)] group-hover:text-[var(--color-brand)] transition-colors leading-snug'
+                      >
+                        {job.title}
+                      </h3>
+                    </div>
+
+                    <span
+                      class='shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--color-warm)] text-[var(--color-brand)] group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors mt-1'
+                      aria-hidden='true'
+                    >
+                      <svg
+                        class='w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                        stroke-width='2.5'
+                      >
+                        <path
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          d='M9 5l7 7-7 7'
+                        />
+                      </svg>
+                    </span>
+                  </div>
+
+                  <!-- Summary (hidden on very small screens) -->
+                  {job.summary && (
+                    <p
+                      class='hidden sm:block mt-3 text-[13px] text-gray-500 leading-[1.65]'
+                    >
+                      {job.summary}
+                    </p>
+                  )}
+
+                  <!-- Meta row -->
+                  <div
+                    class='mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] sm:text-[12px]'
+                  >
+                    <span
+                      class='inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--color-warm)] text-gray-600 font-medium'
+                    >
+                      {job.employmentLabel}
+                    </span>
+                    <span class='text-gray-400'>{job.location}</span>
+                    {job.postedLabel && (
+                      <>
+                        <span class='w-1 h-1 rounded-full bg-gray-300'></span>
+                        <span class='text-gray-400'>
+                          Posted {job.postedLabel}
+                        </span>
+                      </>
+                    )}
+                    {job.isClosingSoon && (
+                      <>
+                        <span class='w-1 h-1 rounded-full bg-gray-300'></span>
+                        <span class='text-amber-700 font-semibold'>
+                          Closes in {job.daysLeft}
+                          {job.daysLeft === 1 ? ' day' : ' days'}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      {
+        preparedJobs.length > 0 && (
+          <p class='mt-8 text-[12px] sm:text-[13px] text-gray-500 leading-relaxed max-w-2xl'>
+            Applications are reviewed on a rolling basis. Only shortlisted
+            candidates will be contacted. For enquiries, contact the Human
+            Resources Department at{' '}
+            <a
+              href='mailto:recruitment@spmh.co.ke'
+              class='text-[var(--color-brand)] underline underline-offset-4 decoration-1 hover:decoration-2'
+            >
+              recruitment@spmh.co.ke
+            </a>
+            .
+          </p>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- ══ TERMS OF EMPLOYMENT ════════════════════════════════════ -->
+  <section>
+    <div
+      class='max-w-6xl mx-auto px-6 sm:px-10 py-16 sm:py-24 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-12 lg:gap-20'
+    >
+      <div class='lg:sticky lg:top-24 self-start'>
+        <p
+          class='text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--color-brand)]'
+        >
+          Employment
+        </p>
+        <h2
+          class='mt-5 text-[1.35rem] sm:text-[2rem] font-black tracking-[-0.02em] leading-[1.12] text-[var(--color-ink)]'
+        >
+          Terms and provisions for staff.
+        </h2>
+        <p class='mt-5 text-[13px] sm:text-sm text-gray-500 leading-[1.75] max-w-md'>
+          The Hospital operates a structured employment framework covering
+          remuneration, professional development, and workplace wellbeing.
+        </p>
+      </div>
+
+      <ol class='space-y-8 sm:space-y-10'>
+        {provisions.map((p) => (
+          <li class='grid grid-cols-[auto_1fr] gap-x-5 sm:gap-x-7 items-start'>
+            <span
+              class='text-[13px] font-black tracking-tight text-[var(--color-brand)] tabular-nums pt-1'
+            >
+              {p.n}
+            </span>
+            <div>
+              <h3
+                class='text-[15px] sm:text-[17px] font-bold tracking-[-0.01em] text-[var(--color-ink)] mb-1.5'
+              >
+                {p.title}
+              </h3>
+              <p class='text-[13px] sm:text-sm text-gray-500 leading-[1.75]'>
+                {p.body}
               </p>
             </div>
-          ) : (
-            <ul class='space-y-3'>
-              {jobs.map((job) => (
-                <li>
-                  <a
-                    href={`/jobs/${job.slug}`}
-                    class='block bg-white border border-[var(--color-border-soft)] rounded-2xl p-6 hover:border-[var(--color-brand)] hover:shadow-md transition-all'>
-                    <div class='flex items-start justify-between gap-6'>
-                      <div class='min-w-0'>
-                        <h3 class='font-bold text-lg'>{job.title}</h3>
-                        {job.departments && (
-                          <p class='text-xs font-medium text-[var(--color-brand)] mt-1'>
-                            {job.departments.label}
-                          </p>
-                        )}
-                        {job.summary && (
-                          <p class='text-sm text-gray-500 mt-3 line-clamp-2'>
-                            {job.summary}
-                          </p>
-                        )}
-                      </div>
-                      <div class='text-right shrink-0'>
-                        <span class='inline-block text-xs font-medium px-3 py-1 rounded-full bg-[var(--color-warm)] text-gray-600 capitalize'>
-                          {job.employment_type.replace('_', ' ')}
-                        </span>
-                        <p class='text-xs text-gray-400 mt-2'>{job.location}</p>
-                      </div>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )
-        }
-      </section>
-    </main>
-  </body>
-</html>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- ══ INSTITUTIONAL NOTE ════════════════════════════════════ -->
+  <section class='bg-white border-y border-[var(--color-border-soft)]'>
+    <div class='max-w-6xl mx-auto px-6 sm:px-10 py-12 sm:py-14'>
+      <p
+        class='text-[10px] font-semibold mx-auto text-center uppercase tracking-[0.28em] text-[var(--color-brand)] mb-4'
+      >
+        Equal opportunity
+      </p>
+      <p class='text-[12px] sm:text-[13px] text-gray-500 leading-[1.8] mx-auto max-w-3xl'>
+        St. Paul's Mission Hospital is an equal opportunity employer. All
+        applications are considered on merit without regard to ethnicity,
+        religion, gender, marital status, disability, or any other basis
+        protected under the laws of Kenya. Personal data submitted through this
+        portal is processed in accordance with the Kenya Data Protection Act,
+        2019, and retained only for the period necessary for recruitment
+        purposes.
+      </p>
+    </div>
+  </section>
+</PublicLayout>

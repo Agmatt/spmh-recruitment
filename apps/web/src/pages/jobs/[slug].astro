@@ -1,0 +1,241 @@
+---
+import '../../styles/global.css';
+import { marked } from 'marked';
+import { supabase } from '../../lib/supabase';
+import type { JobWithDepartment } from '../../lib/types';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/404');
+}
+
+const { data: job, error } = await supabase
+  .from('job_postings')
+  .select(
+    `
+    *,
+    departments ( slug, label )
+  `,
+  )
+  .eq('slug', slug)
+  .eq('status', 'published')
+  .maybeSingle<JobWithDepartment>();
+
+if (error || !job) {
+  return Astro.redirect('/404');
+}
+
+// Markdown → HTML. Content is authored only by authenticated HR admins,
+// so we treat it as trusted. If we ever open editing to non-admins,
+// add sanitize-html here.
+const descriptionHtml = marked.parse(job.description_md || '') as string;
+const requirementsHtml = job.requirements_md
+  ? (marked.parse(job.requirements_md) as string)
+  : null;
+
+// ── Structured data for Google Jobs ─────────────────────────
+const employmentTypeMap: Record<string, string> = {
+  full_time: 'FULL_TIME',
+  part_time: 'PART_TIME',
+  contract: 'CONTRACTOR',
+  internship: 'INTERN',
+  locum: 'TEMPORARY',
+};
+
+const jobSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'JobPosting',
+  title: job.title,
+  description: descriptionHtml,
+  datePosted: job.published_at ?? job.created_at,
+  ...(job.closes_at && { validThrough: job.closes_at }),
+  employmentType: employmentTypeMap[job.employment_type] ?? 'OTHER',
+  hiringOrganization: {
+    '@type': 'Organization',
+    name: "St. Paul's Mission Hospital",
+    sameAs: 'https://www.spmh.co.ke',
+    logo: 'https://www.spmh.co.ke/file.svg',
+  },
+  jobLocation: {
+    '@type': 'Place',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Homa Bay',
+      addressCountry: 'KE',
+    },
+  },
+  ...(job.salary_min &&
+    job.salary_max && {
+      baseSalary: {
+        '@type': 'MonetaryAmount',
+        currency: job.salary_currency ?? 'KES',
+        value: {
+          '@type': 'QuantitativeValue',
+          minValue: job.salary_min,
+          maxValue: job.salary_max,
+          unitText:
+            job.salary_period === 'year'
+              ? 'YEAR'
+              : job.salary_period === 'week'
+                ? 'WEEK'
+                : job.salary_period === 'day'
+                  ? 'DAY'
+                  : 'MONTH',
+        },
+      },
+    }),
+};
+
+const formattedDate = job.published_at
+  ? new Date(job.published_at).toLocaleDateString('en-KE', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : null;
+
+const closesDate = job.closes_at
+  ? new Date(job.closes_at).toLocaleDateString('en-KE', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  : null;
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+
+    <title>{job.title} — Careers at St. Paul's Mission Hospital</title>
+    <meta
+      name='description'
+      content={job.summary ??
+        `${job.title} position at St. Paul's Mission Hospital in ${job.location}.`}
+    />
+    <link
+      rel='canonical'
+      href={`https://recruitment.spmh.co.ke/jobs/${job.slug}`}
+    />
+
+    <meta property='og:type' content='website' />
+    <meta
+      property='og:url'
+      content={`https://recruitment.spmh.co.ke/jobs/${job.slug}`}
+    />
+    <meta property='og:title' content={`${job.title} — SPMH Careers`} />
+    <meta
+      property='og:description'
+      content={job.summary ?? `${job.title} at St. Paul's Mission Hospital.`}
+    />
+
+    <script type='application/ld+json' set:html={JSON.stringify(jobSchema)} />
+  </head>
+
+  <body class='min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)]'>
+    <header class='border-b border-[var(--color-border-soft)] bg-white'>
+      <div class='max-w-5xl mx-auto px-6 py-4'>
+        <a
+          href='/'
+          class='text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand)] hover:opacity-80'>
+          ← All openings
+        </a>
+      </div>
+    </header>
+
+    <main class='max-w-5xl mx-auto px-6 py-12'>
+      <div class='grid lg:grid-cols-[1fr_320px] gap-12'>
+        <!-- Main content -->
+        <article class='min-w-0'>
+          <header class='mb-10'>
+            {
+              job.departments && (
+                <p class='text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand)] mb-3'>
+                  {job.departments.label}
+                </p>
+              )
+            }
+            <h1
+              class='text-3xl sm:text-4xl font-black tracking-tight leading-tight'>
+              {job.title}
+            </h1>
+            {
+              job.summary && (
+                <p class='mt-4 text-base text-gray-600 leading-relaxed'>
+                  {job.summary}
+                </p>
+              )
+            }
+          </header>
+
+          <div class='prose' set:html={descriptionHtml} />
+
+          {
+            requirementsHtml && (
+              <section class='mt-12 pt-10 border-t border-[var(--color-border-soft)]'>
+                <div class='prose' set:html={requirementsHtml} />
+              </section>
+            )
+          }
+        </article>
+
+        <!-- Sidebar -->
+        <aside class='lg:sticky lg:top-6 self-start space-y-6'>
+          <div
+            class='bg-white border border-[var(--color-border-soft)] rounded-2xl p-6'>
+            <h2
+              class='text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand)] mb-5'>
+              Position Details
+            </h2>
+
+            <dl class='space-y-4 text-sm'>
+              <div>
+                <dt class='text-xs font-medium text-gray-400 mb-1'>Type</dt>
+                <dd class='font-semibold capitalize'>
+                  {job.employment_type.replace('_', ' ')}
+                </dd>
+              </div>
+              <div>
+                <dt class='text-xs font-medium text-gray-400 mb-1'>Location</dt>
+                <dd class='font-semibold'>{job.location}</dd>
+              </div>
+              {
+                formattedDate && (
+                  <div>
+                    <dt class='text-xs font-medium text-gray-400 mb-1'>
+                      Posted
+                    </dt>
+                    <dd class='font-semibold'>{formattedDate}</dd>
+                  </div>
+                )
+              }
+              {
+                closesDate && (
+                  <div>
+                    <dt class='text-xs font-medium text-gray-400 mb-1'>
+                      Applications close
+                    </dt>
+                    <dd class='font-semibold'>{closesDate}</dd>
+                  </div>
+                )
+              }
+            </dl>
+          </div>
+
+          <a
+            href={`/apply/${job.slug}`}
+            class='block w-full text-center px-6 py-4 bg-[var(--color-brand)] text-white font-bold text-sm rounded-xl hover:bg-[var(--color-brand-hover)] transition-colors'>
+            Apply for this role
+          </a>
+
+          <p class='text-xs text-gray-400 text-center leading-relaxed'>
+            Applications are reviewed by our HR team. You'll receive an email
+            confirmation once your application is received.
+          </p>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>

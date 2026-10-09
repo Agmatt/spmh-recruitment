@@ -1,0 +1,4 @@
+{
+  "extends": "@spmh/config/tsconfig.base.json",
+  "include": ["src"]
+}

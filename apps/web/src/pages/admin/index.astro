@@ -1,0 +1,47 @@
+---
+import { createSupabaseServerClient } from '../../lib/supabase-ssr';
+import { listApplications, listJobsForFilter } from '../../lib/admin-queries';
+import ApplicationsTable from '../../islands/ApplicationsTable.tsx';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+const user = Astro.locals.user;
+const supabase = createSupabaseServerClient(Astro);
+
+const [applications, jobs] = await Promise.all([
+  listApplications(supabase),
+  listJobsForFilter(supabase),
+]);
+---
+
+<AdminLayout
+  title='Applications'
+  active='applications'
+  userEmail={user?.email ?? ''}>
+  <div class='mb-6 flex items-start justify-between gap-6 flex-wrap'>
+    <div>
+      <h1 class='text-2xl font-black tracking-tight mb-1'>Applications</h1>
+      <p class='text-sm text-gray-500'>
+        Every application received across all job postings.
+      </p>
+    </div>
+
+    <div class='flex gap-2'>
+      <a
+        href='/api/export/csv'
+        class='inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-[var(--color-border-soft)] text-[var(--color-ink)] text-xs font-bold rounded-xl hover:border-[var(--color-brand)] transition-colors'>
+        CSV
+      </a>
+      <a
+        href='/api/export/xlsx'
+        class='inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--color-brand)] text-white text-xs font-bold rounded-xl hover:bg-[var(--color-brand-hover)] transition-colors'>
+        Excel
+      </a>
+    </div>
+  </div>
+
+  <ApplicationsTable
+    client:load
+    initialApplications={applications}
+    jobs={jobs.map((j) => ({ id: j.id, title: j.title, slug: j.slug }))}
+  />
+</AdminLayout>

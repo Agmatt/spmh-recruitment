@@ -1,0 +1,35 @@
+---
+import { createSupabaseServerClient } from '../../lib/supabase-ssr';
+import { listAllJobs } from '../../lib/job-queries';
+import JobsList from '../../islands/JobsList.tsx';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+const user = Astro.locals.user;
+const supabase = createSupabaseServerClient(Astro);
+const jobs = await listAllJobs(supabase);
+---
+
+<AdminLayout title='Job Postings' active='jobs' userEmail={user?.email ?? ''}>
+  <div class='mb-6'>
+    <h1 class='text-2xl font-black tracking-tight mb-1'>Job Postings</h1>
+    <p class='text-sm text-gray-500'>
+      Create, publish, and manage roles. Published jobs appear instantly on the
+      public careers page.
+    </p>
+  </div>
+
+  <JobsList
+    client:load
+    initialJobs={jobs.map((j) => ({
+      id: j.id,
+      slug: j.slug,
+      title: j.title,
+      status: j.status,
+      employment_type: j.employment_type,
+      location: j.location,
+      created_at: j.created_at,
+      published_at: j.published_at,
+      departments: j.departments ? { label: j.departments.label } : null,
+    }))}
+  />
+</AdminLayout>

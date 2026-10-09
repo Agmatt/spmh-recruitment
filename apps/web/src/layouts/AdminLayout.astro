@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  active: 'applications' | 'jobs';
+  userEmail?: string;
+}
+
+const { title, active, userEmail } = Astro.props;
+
+const tabs = [
+  { key: 'applications' as const, label: 'Applications', href: '/admin' },
+  { key: 'jobs' as const, label: 'Job Postings', href: '/admin/jobs' },
+];
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{title} — SPMH Recruitment Admin</title>
+    <meta name='robots' content='noindex, nofollow' />
+  </head>
+
+  <body class='min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)]'>
+    <header class='bg-white border-b border-[var(--color-border-soft)]'>
+      <div
+        class='max-w-7xl mx-auto px-6 py-4 flex items-center justify-between'>
+        <div class='flex items-center gap-3'>
+          <span
+            class='w-8 h-8 rounded-lg bg-[var(--color-brand)] text-white font-black text-sm flex items-center justify-center'>
+            S
+          </span>
+          <div>
+            <p
+              class='text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand)]'>
+              SPMH Recruitment
+            </p>
+            <p class='text-xs text-gray-400'>{userEmail}</p>
+          </div>
+        </div>
+        <form method='POST' action='/api/auth/signout'>
+          <button
+            type='submit'
+            class='text-xs font-semibold text-gray-500 hover:text-[var(--color-brand)] transition-colors'>
+            Sign out
+          </button>
+        </form>
+      </div>
+
+      <nav class='max-w-7xl mx-auto px-6'>
+        <ul class='flex gap-1 -mb-px'>
+          {
+            tabs.map((t) => (
+              <li>
+                <a
+                  href={t.href}
+                  class:list={[
+                    'inline-block px-4 py-3 text-sm font-semibold border-b-2 transition-colors',
+                    active === t.key
+                      ? 'border-[var(--color-brand)] text-[var(--color-brand)]'
+                      : 'border-transparent text-gray-400 hover:text-[var(--color-ink)]',
+                  ]}>
+                  {t.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </header>
+
+    <main class='max-w-7xl mx-auto px-6 py-8'>
+      <slot />
+    </main>
+  </body>
+</html>

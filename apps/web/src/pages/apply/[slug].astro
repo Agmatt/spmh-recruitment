@@ -1,0 +1,59 @@
+---
+import '../../styles/global.css';
+import { supabase } from '../../lib/supabase';
+import ApplyForm from '../../islands/ApplyForm.tsx';
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect('/404');
+
+const { data: job } = await supabase
+  .from('job_postings')
+  .select('id, title, slug, status, closes_at')
+  .eq('slug', slug)
+  .eq('status', 'published')
+  .maybeSingle();
+
+if (!job) return Astro.redirect('/404');
+if (job.closes_at && new Date(job.closes_at) < new Date()) {
+  return Astro.redirect(`/jobs/${job.slug}`);
+}
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Apply — {job.title} | SPMH Careers</title>
+    <meta name='robots' content='noindex' />
+  </head>
+
+  <body class='min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)]'>
+    <header class='border-b border-[var(--color-border-soft)] bg-white'>
+      <div class='max-w-3xl mx-auto px-6 py-4'>
+        <a
+          href={`/jobs/${job.slug}`}
+          class='text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand)] hover:opacity-80'>
+          ← Back to posting
+        </a>
+      </div>
+    </header>
+
+    <main class='max-w-3xl mx-auto px-6 py-12'>
+      <div class='mb-10'>
+        <p
+          class='text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand)] mb-3'>
+          Application
+        </p>
+        <h1 class='text-3xl font-black tracking-tight'>{job.title}</h1>
+        <p class='text-sm text-gray-500 mt-2'>
+          Fill in your details below. All fields marked * are required.
+        </p>
+      </div>
+
+      <ApplyForm
+        client:load
+        job={{ id: job.id, title: job.title, slug: job.slug }}
+      />
+    </main>
+  </body>
+</html>

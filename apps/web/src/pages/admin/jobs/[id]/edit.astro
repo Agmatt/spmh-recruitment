@@ -1,0 +1,70 @@
+---
+import { createSupabaseServerClient } from '../../../../lib/supabase-ssr';
+import { getJobById, listDepartments } from '../../../../lib/job-queries';
+import JobForm from '../../../../islands/JobForm.tsx';
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+
+const user = Astro.locals.user;
+const supabase = createSupabaseServerClient(Astro);
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin/jobs');
+
+const [job, departments] = await Promise.all([
+  getJobById(supabase, id),
+  listDepartments(supabase),
+]);
+
+if (!job) return Astro.redirect('/admin/jobs');
+---
+
+<AdminLayout
+  title={`Edit — ${job.title}`}
+  active='jobs'
+  userEmail={user?.email ?? ''}>
+  <div class='mb-6'>
+    <a
+      href='/admin/jobs'
+      class='text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand)] hover:opacity-80'>
+      ← All jobs
+    </a>
+    <h1 class='text-2xl font-black tracking-tight mt-3'>Edit — {job.title}</h1>
+    <p class='text-sm text-gray-500 mt-1'>
+      Status: <strong class='uppercase'>{job.status}</strong>
+      {
+        job.published_at && (
+          <>
+            {' · '}
+            Published {new Date(job.published_at).toLocaleDateString('en-KE')}
+          </>
+        )
+      }
+    </p>
+  </div>
+
+  <JobForm
+    client:load
+    mode='edit'
+    initial={{
+      id: job.id,
+      title: job.title,
+      slug: job.slug,
+      department_id: job.department_id,
+      employment_type: job.employment_type,
+      location: job.location,
+      summary: job.summary ?? '',
+      description_md: job.description_md,
+      requirements_md: job.requirements_md ?? '',
+      salary_min: job.salary_min,
+      salary_max: job.salary_max,
+      salary_currency: job.salary_currency ?? 'KES',
+      salary_period: job.salary_period ?? 'month',
+      closes_at: job.closes_at,
+    }}
+    departments={departments.map((d) => ({
+      id: d.id,
+      slug: d.slug,
+      label: d.label,
+    }))}
+  />
+</AdminLayout>

@@ -1,21 +1,28 @@
 {
-  "$schema": "https://turborepo.dev/schema.json",
+  "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "PUBLIC_SUPABASE_URL",
+    "PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "RESEND_API_KEY",
+    "EMAIL_FROM",
+    "EMAIL_HR_NOTIFY",
+    "PUBLIC_SITE_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
+      "outputs": ["dist/**", ".vercel/**", ".astro/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "lint": {},
+    "typecheck": {},
+    "clean": {
+      "cache": false
     }
   }
 }

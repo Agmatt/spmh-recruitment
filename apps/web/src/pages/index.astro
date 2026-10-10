@@ -59,34 +59,115 @@ const preparedJobs = jobs.map((job) => {
   };
 });
 
-const provisions = [
-  {
-    n: '01',
-    title: 'Patient-centred clinical practice',
-    body: 'Every role at the hospital contributes directly to the delivery of quality care for the communities of Homa Bay County.',
-  },
-  {
-    n: '02',
-    title: 'Continuing professional development',
-    body: 'Staff have access to structured clinical pathways, mentorship from senior practitioners, and regular Continuing Medical Education.',
-  },
-  {
-    n: '03',
-    title: 'Multidisciplinary work environment',
-    body: 'Clinical, administrative, and support teams operate in close coordination across all hospital departments.',
-  },
-  {
-    n: '04',
-    title: 'Terms of service',
-    body: 'Remuneration, medical cover, leave entitlements, and performance review frameworks are documented and applied consistently to all staff.',
-  },
-];
-
 const today = new Date().toLocaleDateString('en-KE', {
   day: 'numeric',
   month: 'long',
   year: 'numeric',
 });
+
+const values = [
+  {
+    icon: 'fa-solid fa-user-doctor',
+    title: 'Professionalism',
+    body: 'Competent, ethical, and patient-centred care delivered with accountability and respect.',
+  },
+  {
+    icon: 'fa-solid fa-scale-balanced',
+    title: 'Integrity & Stewardship',
+    body: 'Honest, transparent, and prudent management of every resource entrusted to us.',
+  },
+  {
+    icon: 'fa-solid fa-people-group',
+    title: 'Teamwork & Servant Leadership',
+    body: 'Collaboration, humility, and mutual respect across every department and shift.',
+  },
+  {
+    icon: 'fa-solid fa-lightbulb',
+    title: 'Adaptability & Innovation',
+    body: 'Continuous learning and appropriate adoption of technology to strengthen care.',
+  },
+  {
+    icon: 'fa-solid fa-heart',
+    title: 'Christ-Centred Care',
+    body: 'Reflecting the love, dignity, and hope of Christ in every patient encounter.',
+  },
+  {
+    icon: 'fa-solid fa-hand-holding-heart',
+    title: 'Compassion',
+    body: 'Genuine kindness toward patients, families, and one another — every single day.',
+  },
+];
+
+const whyUs = [
+  {
+    icon: 'fa-solid fa-graduation-cap',
+    title: 'Continuing professional development',
+    body: 'Structured CPD, clinical mentorship, and access to specialist training pathways.',
+  },
+  {
+    icon: 'fa-solid fa-shield-heart',
+    title: 'Comprehensive staff benefits',
+    body: 'Medical cover, paid leave, performance recognition, and wellness support.',
+  },
+  {
+    icon: 'fa-solid fa-house-medical',
+    title: 'Modern clinical environment',
+    body: 'Well-equipped wards, theatre, diagnostics, maternity, and emergency units.',
+  },
+  {
+    icon: 'fa-solid fa-hands-praying',
+    title: 'Purpose-driven workplace',
+    body: 'Every role — clinical or administrative — contributes to healing and hope.',
+  },
+  {
+    icon: 'fa-solid fa-users',
+    title: 'Supportive team culture',
+    body: 'Open communication, peer support, and leadership that listens to staff.',
+  },
+  {
+    icon: 'fa-solid fa-seedling',
+    title: 'Rooted in community',
+    body: 'Serve families across Homa Bay County and see your work change lives locally.',
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      "I joined as a junior nurse 2 years ago. The mentorship here is unmatched — I've grown into a theatre lead, and the hospital supported every step of my training.",
+    name: 'Ronah Gesare',
+    role: 'Theatre Technologist',
+    initials: 'RG',
+  },
+  {
+    quote:
+      'Working here feels like being part of a family. When I needed flexible hours after my second child, leadership made it work without compromising my career.',
+    name: 'Jemima Nasimiyu',
+    role: 'Health Records Officer',
+    initials: 'JN',
+  },
+  {
+    quote:
+      'What drew me was the mission. What keeps me is the people. The doctors, the cleaners, the kitchen team — everyone is here for the same reason.',
+    name: 'Evans Oguta',
+    role: 'Laboratory Technologist',
+    initials: 'EO',
+  },
+  {
+    quote:
+      "In the finance department, I see how careful stewardship allows us to keep care affordable for the poorest families. That's a rare privilege.",
+    name: 'Recho Adhiambo',
+    role: 'Claims Officer',
+    initials: 'RA',
+  },
+];
+
+const stats = [
+  { value: '250K+', label: 'Catchment population served' },
+  { value: '24/7', label: 'Emergency & maternity services' },
+  { value: '20+', label: 'Clinical & support disciplines' },
+  { value: '100%', label: 'Committed to dignified care' },
+];
 
 const orgSchema = {
   '@context': 'https://schema.org',
@@ -114,86 +195,140 @@ const jobListSchema = {
 
 <PublicLayout
   title="Careers | St. Paul's Mission Hospital"
-  description="Current employment opportunities at St. Paul's Mission Hospital, Homa Bay, Kenya. Applications from qualified healthcare and administrative professionals are welcome."
-  canonicalPath='/'
->
+  description="Build a meaningful career in healthcare at St. Paul's Mission Hospital, Homa Bay. Explore clinical, administrative, and community roles."
+  canonicalPath='/'>
   <script type='application/ld+json' set:html={JSON.stringify(orgSchema)} />
   <script type='application/ld+json' set:html={JSON.stringify(jobListSchema)} />
 
-  <!-- ══ HERO ═══════════════════════════════════════════════════ -->
-  <section class='border-b border-[var(--color-border-soft)]'>
-    <div class='max-w-6xl mx-auto px-6 sm:px-10 pt-16 sm:pt-24 pb-12 sm:pb-16'>
-      <p
-        class='text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--color-brand)]'
-      >
-        Careers
-      </p>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- HERO                                                        -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section class='relative overflow-hidden bg-[#141416] text-white'>
+    <img
+      src='/img/8.jpg'
+      alt=''
+      class='absolute inset-0 w-full h-full object-cover opacity-45'
+      aria-hidden='true'
+    />
+    <div
+      class='absolute inset-0 bg-gradient-to-br from-[#860f0f]/85 via-[#141416]/85 to-[#141416]/95'
+      aria-hidden='true'>
+    </div>
+    <div
+      class='absolute inset-0 opacity-[0.08]'
+      style='background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 28px 28px;'
+      aria-hidden='true'>
+    </div>
 
-      <h1
-        class='mt-5 text-[2rem] sm:text-5xl lg:text-[3.25rem] font-black tracking-[-0.025em] leading-[1.08] max-w-4xl text-[var(--color-ink)]'
-      >
-        Employment at St.&nbsp;Paul's Mission Hospital.
-      </h1>
+    <div
+      class='relative max-w-6xl mx-auto px-6 sm:px-10 pt-20 sm:pt-28 pb-20 sm:pb-28'>
+      <div class='max-w-3xl'>
+        <p
+          class='text-[11px] font-bold uppercase tracking-[0.3em] text-white/55 mb-6'>
+          St. Paul's Mission Hospital · Homa Bay
+        </p>
 
-      <p
-        class='mt-6 text-[15px] sm:text-[17px] text-gray-600 leading-[1.7] max-w-2xl'
-      >
-        St. Paul's Mission Hospital is a healthcare institution serving Homa
-        Bay County and the surrounding region. Qualified professionals are
-        invited to review the current openings listed below and submit
-        applications through the official recruitment portal.
-      </p>
+        <h1
+          class='text-[2.25rem] sm:text-5xl lg:text-[3.5rem] font-black tracking-[-0.025em] leading-[1.06] mb-7'>
+          A career that heals.<br />
+          A team that cares.
+        </h1>
 
+        <p
+          class='text-[15px] sm:text-[17px] text-white/75 leading-[1.75] max-w-2xl mb-10'>
+          Join a faith-based, Level IV mission hospital serving families across
+          Homa Bay County. Whether you are a clinician, administrator, or just
+          beginning your career — there is a place for you here.
+        </p>
+
+        <div class='flex flex-wrap items-center gap-3'>
+          <a
+            href='#openings'
+            class='inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white text-[var(--color-ink)] text-sm font-bold hover:bg-white/90 transition-colors'>
+            View open positions
+            <i class='fa-solid fa-arrow-down text-[11px]'></i>
+          </a>
+          <a
+            href='/who-we-are'
+            class='inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/25 text-white text-sm font-bold hover:border-white/50 transition-colors'>
+            About St. Paul's
+            <i class='fa-solid fa-arrow-right text-[11px]'></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats strip -->
       <dl
-        class='mt-12 pt-8 border-t border-[var(--color-border-soft)] grid grid-cols-2 sm:grid-cols-3 gap-y-6 gap-x-8 max-w-3xl'
-      >
-        <div>
-          <dt
-            class='text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mb-1.5'
-          >
-            Vacancies
-          </dt>
-          <dd class='text-[14px] sm:text-[15px] font-semibold text-[var(--color-ink)]'>
-            {jobCountLabel}
-          </dd>
-        </div>
-        <div>
-          <dt
-            class='text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mb-1.5'
-          >
-            Location
-          </dt>
-          <dd class='text-[14px] sm:text-[15px] font-semibold text-[var(--color-ink)]'>
-            Homa Bay, Kenya
-          </dd>
-        </div>
-        <div class='col-span-2 sm:col-span-1'>
-          <dt
-            class='text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-400 mb-1.5'
-          >
-            Register updated
-          </dt>
-          <dd class='text-[14px] sm:text-[15px] font-semibold text-[var(--color-ink)]'>
-            {today}
-          </dd>
-        </div>
+        class='mt-20 pt-10 border-t border-white/10 grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-8'>
+        {
+          stats.map((s) => (
+            <div>
+              <dd class='text-2xl sm:text-3xl font-black tracking-tight text-white mb-2'>
+                {s.value}
+              </dd>
+              <dt class='text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45 leading-snug'>
+                {s.label}
+              </dt>
+            </div>
+          ))
+        }
       </dl>
     </div>
   </section>
 
-  <!-- ══ OPEN POSITIONS ═════════════════════════════════════════ -->
-  <section
-    id='openings'
-    class='bg-white border-b border-[var(--color-border-soft)]'
-  >
-    <div class='max-w-6xl mx-auto px-6 sm:px-10 py-16 sm:py-24'>
-      <div class='mb-8 sm:mb-10'>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- VALUES                                                      -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section class='bg-white border-b border-[var(--color-border-soft)]'>
+    <div class='max-w-6xl mx-auto px-4 sm:px-10 py-20 sm:py-24'>
+      <div class='max-w-2xl mb-14'>
+        <p
+          class='text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--color-brand)] mb-3'>
+          Our values
+        </p>
         <h2
-          class='text-[1.35rem] sm:text-3xl font-black tracking-[-0.02em] text-[var(--color-ink)] mb-2'
-        >
+          class='text-[1.75rem] sm:text-4xl font-black tracking-[-0.02em] leading-[1.12] text-[var(--color-ink)] mb-4'>
+          The principles that guide our work.
+        </h2>
+        <p class='text-[15px] text-gray-500 leading-[1.75]'>
+          Every decision, every shift, and every patient interaction at St.
+          Paul's is shaped by these commitments.
+        </p>
+      </div>
+
+      <div class='grid sm:grid-cols-2 lg:grid-cols-3 gap-5'>
+        {
+          values.map((v) => (
+            <div class='group bg-[var(--color-warm)]/40 border border-[var(--color-border-soft)] rounded-2xl p-6 hover:bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300'>
+              <div class='w-12 h-12 rounded-xl bg-white border border-[var(--color-border-soft)] flex items-center justify-center mb-5 text-[var(--color-brand)] group-hover:bg-[var(--color-brand)] group-hover:text-white group-hover:border-transparent transition-colors duration-300'>
+                <i class={`${v.icon} text-[17px]`} aria-hidden='true' />
+              </div>
+              <h3 class='text-[15px] font-bold text-[var(--color-ink)] mb-2'>
+                {v.title}
+              </h3>
+              <p class='text-[13px] text-gray-500 leading-[1.7]'>{v.body}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CURRENT OPENINGS                                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section id='openings' class='border-b border-[var(--color-border-soft)]'>
+    <div class='max-w-6xl mx-auto px-4 sm:px-10 py-20 sm:py-24'>
+      <div class='mb-10'>
+        <p
+          class='text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--color-brand)] mb-3'>
+          Openings
+        </p>
+        <h2
+          class='text-[1.75rem] sm:text-4xl font-black tracking-[-0.02em] text-[var(--color-ink)] mb-3'>
           Current vacancies
         </h2>
-        <p class='text-[13px] sm:text-sm text-gray-500 leading-relaxed max-w-2xl'>
+        <p class='text-[14px] text-gray-500 leading-relaxed max-w-2xl'>
           Each listing includes the full job description, requirements, and
           instructions for submission.
         </p>
@@ -201,89 +336,67 @@ const jobListSchema = {
 
       {
         preparedJobs.length === 0 ? (
-          <div class='border border-[var(--color-border-soft)] rounded-xl p-6 sm:p-10 max-w-2xl'>
-            <p class='text-sm font-semibold text-[var(--color-ink)] mb-2'>
+          <div class='border border-[var(--color-border-soft)] rounded-2xl p-8 sm:p-12 max-w-2xl bg-white'>
+            <div class='w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-5 text-[var(--color-brand)]'>
+              <i class='fa-regular fa-clock text-[16px]' />
+            </div>
+            <p class='text-[15px] font-semibold text-[var(--color-ink)] mb-2'>
               No positions are currently open.
             </p>
-            <p class='text-[13px] text-gray-500 leading-relaxed'>
-              The Hospital accepts speculative applications on an ongoing basis.
-              Send submissions to the Human Resources Department at{' '}
+            <p class='text-[13px] text-gray-500 leading-[1.75]'>
+              We accept speculative applications on an ongoing basis. Send
+              submissions to the Human Resources Department at{' '}
               <a
                 href='mailto:recruitment@spmh.co.ke'
-                class='text-[var(--color-brand)] underline underline-offset-4 decoration-1 hover:decoration-2'
-              >
+                class='text-[var(--color-brand)] underline underline-offset-4 decoration-1 hover:decoration-2'>
                 recruitment@spmh.co.ke
               </a>
               .
             </p>
           </div>
         ) : (
-          <ul class='space-y-3'>
+          <ul class='space-y-3.5'>
             {preparedJobs.map((job) => (
               <li>
                 <a
                   href={`/jobs/${job.slug}`}
-                  class='group block border border-[var(--color-border-soft)] rounded-xl p-5 sm:p-6 hover:border-[var(--color-brand)] hover:shadow-[0_2px_16px_-8px_rgba(134,15,15,0.25)] transition-all duration-200'
-                >
-                  <!-- Header row: department + title + chevron -->
+                  class='group block bg-white border border-[var(--color-border-soft)] rounded-2xl p-6 sm:p-7 hover:border-[var(--color-brand)] hover:shadow-[0_4px_24px_-12px_rgba(134,15,15,0.3)] transition-all duration-200'>
                   <div class='flex items-start justify-between gap-4'>
                     <div class='min-w-0 flex-1'>
                       {job.departmentLabel && (
-                        <p
-                          class='text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-brand)] mb-2'
-                        >
+                        <p class='text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-brand)] mb-2'>
                           {job.departmentLabel}
                         </p>
                       )}
-                      <h3
-                        class='text-[16px] sm:text-[18px] font-bold tracking-[-0.01em] text-[var(--color-ink)] group-hover:text-[var(--color-brand)] transition-colors leading-snug'
-                      >
+                      <h3 class='text-[17px] sm:text-[19px] font-bold tracking-[-0.01em] text-[var(--color-ink)] group-hover:text-[var(--color-brand)] transition-colors leading-snug'>
                         {job.title}
                       </h3>
                     </div>
 
                     <span
-                      class='shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--color-warm)] text-[var(--color-brand)] group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors mt-1'
-                      aria-hidden='true'
-                    >
-                      <svg
-                        class='w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform'
-                        fill='none'
-                        viewBox='0 0 24 24'
-                        stroke='currentColor'
-                        stroke-width='2.5'
-                      >
-                        <path
-                          stroke-linecap='round'
-                          stroke-linejoin='round'
-                          d='M9 5l7 7-7 7'
-                        />
-                      </svg>
+                      class='shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-[var(--color-warm)] text-[var(--color-brand)] group-hover:bg-[var(--color-brand)] group-hover:text-white transition-colors mt-0.5'
+                      aria-hidden='true'>
+                      <i class='fa-solid fa-arrow-right text-[12px]' />
                     </span>
                   </div>
 
-                  <!-- Summary (hidden on very small screens) -->
                   {job.summary && (
-                    <p
-                      class='hidden sm:block mt-3 text-[13px] text-gray-500 leading-[1.65]'
-                    >
+                    <p class='mt-3 text-[13px] text-gray-500 leading-[1.7]'>
                       {job.summary}
                     </p>
                   )}
 
-                  <!-- Meta row -->
-                  <div
-                    class='mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] sm:text-[12px]'
-                  >
-                    <span
-                      class='inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--color-warm)] text-gray-600 font-medium'
-                    >
+                  <div class='mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11px] sm:text-[12px]'>
+                    <span class='inline-flex items-center px-2.5 py-0.5 rounded-md bg-[var(--color-warm)] text-gray-600 font-medium'>
                       {job.employmentLabel}
                     </span>
-                    <span class='text-gray-400'>{job.location}</span>
+                    <span class='text-gray-400'>
+                      <i class='fa-solid fa-location-dot mr-1 text-[10px]' />
+                      {job.location}
+                    </span>
                     {job.postedLabel && (
                       <>
-                        <span class='w-1 h-1 rounded-full bg-gray-300'></span>
+                        <span class='w-1 h-1 rounded-full bg-gray-300' />
                         <span class='text-gray-400'>
                           Posted {job.postedLabel}
                         </span>
@@ -291,8 +404,9 @@ const jobListSchema = {
                     )}
                     {job.isClosingSoon && (
                       <>
-                        <span class='w-1 h-1 rounded-full bg-gray-300'></span>
+                        <span class='w-1 h-1 rounded-full bg-gray-300' />
                         <span class='text-amber-700 font-semibold'>
+                          <i class='fa-regular fa-clock mr-1 text-[10px]' />
                           Closes in {job.daysLeft}
                           {job.daysLeft === 1 ? ' day' : ' days'}
                         </span>
@@ -308,14 +422,13 @@ const jobListSchema = {
 
       {
         preparedJobs.length > 0 && (
-          <p class='mt-8 text-[12px] sm:text-[13px] text-gray-500 leading-relaxed max-w-2xl'>
+          <p class='mt-8 text-[14px] sm:text-[16px] text-gray-500 leading-relaxed max-w-2xl'>
             Applications are reviewed on a rolling basis. Only shortlisted
             candidates will be contacted. For enquiries, contact the Human
             Resources Department at{' '}
             <a
               href='mailto:recruitment@spmh.co.ke'
-              class='text-[var(--color-brand)] underline underline-offset-4 decoration-1 hover:decoration-2'
-            >
+              class='text-[var(--color-brand)] underline underline-offset-4 decoration-1 hover:decoration-2'>
               recruitment@spmh.co.ke
             </a>
             .
@@ -325,69 +438,209 @@ const jobListSchema = {
     </div>
   </section>
 
-  <!-- ══ TERMS OF EMPLOYMENT ════════════════════════════════════ -->
-  <section>
-    <div
-      class='max-w-6xl mx-auto px-6 sm:px-10 py-16 sm:py-24 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-12 lg:gap-20'
-    >
-      <div class='lg:sticky lg:top-24 self-start'>
-        <p
-          class='text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--color-brand)]'
-        >
-          Employment
-        </p>
-        <h2
-          class='mt-5 text-[1.35rem] sm:text-[2rem] font-black tracking-[-0.02em] leading-[1.12] text-[var(--color-ink)]'
-        >
-          Terms and provisions for staff.
-        </h2>
-        <p class='mt-5 text-[13px] sm:text-sm text-gray-500 leading-[1.75] max-w-md'>
-          The Hospital operates a structured employment framework covering
-          remuneration, professional development, and workplace wellbeing.
-        </p>
-      </div>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- WHY CHOOSE US                                               -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section class='bg-white border-b border-[var(--color-border-soft)]'>
+    <div class='max-w-6xl mx-auto px-4 sm:px-10 py-20 sm:py-24'>
+      <div
+        class='grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-12 lg:gap-20 items-start'>
+        <!-- Left: image + heading -->
+        <div class='lg:sticky lg:top-24'>
+          <p
+            class='text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--color-brand)] mb-3'>
+            Why SPMH
+          </p>
+          <h2
+            class='text-[1.75rem] sm:text-4xl font-black tracking-[-0.02em] leading-[1.12] text-[var(--color-ink)] mb-5'>
+            Build a career with meaning.
+          </h2>
+          <p class='text-[14px] text-gray-500 leading-[1.75] mb-8 max-w-md'>
+            We are committed to staff who are committed to patients. Here is
+            what you can expect when you join the SPMH team.
+          </p>
 
-      <ol class='space-y-8 sm:space-y-10'>
-        {provisions.map((p) => (
-          <li class='grid grid-cols-[auto_1fr] gap-x-5 sm:gap-x-7 items-start'>
-            <span
-              class='text-[13px] font-black tracking-tight text-[var(--color-brand)] tabular-nums pt-1'
-            >
-              {p.n}
-            </span>
-            <div>
-              <h3
-                class='text-[15px] sm:text-[17px] font-bold tracking-[-0.01em] text-[var(--color-ink)] mb-1.5'
-              >
-                {p.title}
-              </h3>
-              <p class='text-[13px] sm:text-sm text-gray-500 leading-[1.75]'>
-                {p.body}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ol>
+          <div
+            class='rounded-2xl overflow-hidden aspect-[4/3] bg-[#141416] border border-[var(--color-border-soft)]'>
+            <img
+              src='/gallery/11.jpg'
+              alt='SPMH staff at work'
+              class='w-full h-full object-cover'
+            />
+          </div>
+        </div>
+
+        <!-- Right: list -->
+        <ul class='space-y-4'>
+          {
+            whyUs.map((item) => (
+              <li class='flex items-start gap-5 p-5 rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-warm)]/40 hover:bg-white hover:shadow-md transition-all duration-200'>
+                <div class='w-11 h-11 rounded-xl bg-white border border-[var(--color-border-soft)] flex items-center justify-center shrink-0 text-[var(--color-brand)]'>
+                  <i class={`${item.icon} text-[16px]`} aria-hidden='true' />
+                </div>
+                <div class='min-w-0'>
+                  <h3 class='text-[15px] font-bold text-[var(--color-ink)] mb-1.5'>
+                    {item.title}
+                  </h3>
+                  <p class='text-[13px] text-gray-500 leading-[1.7]'>
+                    {item.body}
+                  </p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
     </div>
   </section>
 
-  <!-- ══ INSTITUTIONAL NOTE ════════════════════════════════════ -->
-  <section class='bg-white border-y border-[var(--color-border-soft)]'>
-    <div class='max-w-6xl mx-auto px-6 sm:px-10 py-12 sm:py-14'>
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- TESTIMONIALS CAROUSEL                                       -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section class='relative overflow-hidden bg-[#141416] text-white'>
+    <img
+      src='/gallery/3.jpg'
+      alt=''
+      class='absolute inset-0 w-full h-full object-cover opacity-20'
+      aria-hidden='true'
+    />
+    <div
+      class='absolute inset-0 bg-gradient-to-br from-[#141416]/95 via-[#141416]/90 to-[#860f0f]/40'
+      aria-hidden='true'>
+    </div>
+
+    <div
+      class='relative max-w-4xl mx-auto px-4 sm:px-10 py-8 md:py-24 sm:py-28 text-center'>
       <p
-        class='text-[10px] font-semibold mx-auto text-center uppercase tracking-[0.28em] text-[var(--color-brand)] mb-4'
-      >
-        Equal opportunity
+        class='text-[11px] font-bold uppercase tracking-[0.28em] text-white/55 mb-8'>
+        Voices from our team
       </p>
-      <p class='text-[12px] sm:text-[13px] text-gray-500 leading-[1.8] mx-auto max-w-3xl'>
-        St. Paul's Mission Hospital is an equal opportunity employer. All
-        applications are considered on merit without regard to ethnicity,
-        religion, gender, marital status, disability, or any other basis
-        protected under the laws of Kenya. Personal data submitted through this
-        portal is processed in accordance with the Kenya Data Protection Act,
-        2019, and retained only for the period necessary for recruitment
-        purposes.
+
+      <div class='relative min-h-[300px] sm:min-h-[260px]' data-testimonials>
+        {
+          testimonials.map((t, i) => (
+            <blockquote data-slide class='testimonial-slide'>
+              <p class='text-lg sm:text-2xl font-medium leading-[1.5] text-white/95 mb-8 tracking-[-0.005em]'>
+                "{t.quote}"
+              </p>
+              <footer class='flex items-center justify-center gap-3.5'>
+                <div class='w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[12px] font-bold text-white shrink-0'>
+                  {t.initials}
+                </div>
+                <div class='text-left'>
+                  <p class='text-[13px] font-bold text-white leading-tight'>
+                    {t.name}
+                  </p>
+                  <p class='text-[11px] text-white/55 mt-0.5'>{t.role}</p>
+                </div>
+              </footer>
+            </blockquote>
+          ))
+        }
+      </div>
+
+      <div class='flex items-center justify-center gap-2 mt-4 md:mt-10' data-dots>
+        {testimonials.map((_, i) => <span class='dot' data-dot />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- CLOSING CTA                                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <section class='bg-white border-t border-[var(--color-border-soft)]'>
+    <div class='max-w-4xl mx-auto px-4 sm:px-10 py-20 sm:py-24 text-center'>
+      <p
+        class='text-[11px] font-bold uppercase tracking-[0.28em] text-[var(--color-brand)] mb-5'>
+        Join us
       </p>
+      <h2
+        class='text-[1.75rem] sm:text-4xl font-black tracking-[-0.02em] text-[var(--color-ink)] leading-[1.15] mb-6'>
+        Ready to make a difference in Homa Bay?
+      </h2>
+      <p
+        class='text-[14px] sm:text-[15px] text-gray-500 leading-[1.75] max-w-xl mx-auto mb-10'>
+        Whether you're applying for an open position or sending a speculative
+        application, our Human Resources team is ready to hear from you.
+      </p>
+
+      <div class='flex flex-wrap items-center justify-center gap-3'>
+        <a
+          href='#openings'
+          class='inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[var(--color-brand)] text-white text-sm font-bold hover:bg-[var(--color-brand-hover)] transition-colors'>
+          Browse openings
+          <i class='fa-solid fa-arrow-right text-[11px]'></i>
+        </a>
+        <a
+          href='mailto:recruitment@spmh.co.ke'
+          class='inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-[var(--color-border-soft)] text-[var(--color-ink)] text-sm font-bold hover:border-[var(--color-brand)] transition-colors'>
+          <i class='fa-solid fa-envelope text-[12px]'></i>
+          Email HR
+        </a>
+      </div>
     </div>
   </section>
 </PublicLayout>
+
+<style>
+  .testimonial-slide {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 0.8s ease,
+      transform 0.8s ease;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .testimonial-slide.is-active {
+    opacity: 1;
+    transform: translateY(0);
+    position: relative;
+    pointer-events: auto;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.4s ease;
+  }
+  .dot.is-active {
+    width: 22px;
+    background: rgba(255, 255, 255, 0.85);
+  }
+</style>
+
+<script>
+  (function () {
+    var track = document.querySelector('[data-testimonials]');
+    var dotsWrap = document.querySelector('[data-dots]');
+    if (!track) return;
+
+    var slides = track.querySelectorAll('[data-slide]');
+    var dots = dotsWrap ? dotsWrap.querySelectorAll('[data-dot]') : [];
+    if (slides.length < 2) {
+      if (slides[0]) slides[0].classList.add('is-active');
+      if (dots[0]) dots[0].classList.add('is-active');
+      return;
+    }
+
+    var idx = 0;
+    slides[0].classList.add('is-active');
+    if (dots[0]) dots[0].classList.add('is-active');
+
+    setInterval(function () {
+      slides[idx].classList.remove('is-active');
+      if (dots[idx]) dots[idx].classList.remove('is-active');
+
+      idx = (idx + 1) % slides.length;
+
+      slides[idx].classList.add('is-active');
+      if (dots[idx]) dots[idx].classList.add('is-active');
+    }, 6000);
+  })();
+</script>

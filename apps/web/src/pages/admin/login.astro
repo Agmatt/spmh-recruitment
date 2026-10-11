@@ -229,7 +229,7 @@ const passwordSet = reason === 'password-set';
                   Password
                 </label>
                 <a
-                  href='mailto:info@spmh.co.ke?subject=Password%20reset%20request'
+                  href='/admin/forgot-password'
                   class='text-[11px] font-medium text-[var(--color-brand)] hover:underline'>
                   Forgot password?
                 </a>
@@ -254,17 +254,18 @@ const passwordSet = reason === 'password-set';
 
           <div class='mt-10 pt-8 border-t border-[var(--color-border-soft)]'>
             <p class='text-[11px] text-gray-400 leading-relaxed text-center'>
-              Access restricted to authorised HR staff. If you cannot sign in,
-              contact{' '}
+              Access restricted to authorised HR staff. If you have lost access
+              to your account, use the{' '}
               <a
                 href='/admin/forgot-password'
                 class='text-[11px] font-medium text-[var(--color-brand)] hover:underline'>
-                Forgot password?
-              </a>
+                password reset
+              </a>{' '}
+              or contact the Human Resources Department at{' '}
               <a
-                href='/'
+                href='mailto:ict@spmh.co.ke'
                 class='text-[11px] font-medium text-[var(--color-brand)] hover:underline'>
-                Back to Main Site
+                ict@spmh.co.ke
               </a>
               .
             </p>

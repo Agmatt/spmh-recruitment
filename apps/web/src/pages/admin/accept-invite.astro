@@ -24,7 +24,7 @@ import '../../styles/global.css';
     <div class='w-full max-w-sm'>
       <div class='text-center mb-8'>
         <div
-          class='inline-flex w-14 h-14 rounded-2xl bg-white items-center justify-center mb-4 overflow-hidden'>
+          class='inline-flex w-20 h-20 rounded-2xl bg-white border border-[var(--color-border-soft)] shadow-sm items-center justify-center mb-4 overflow-hidden'>
           <img
             src='/logos/logo.png'
             alt=''
@@ -53,33 +53,72 @@ import '../../styles/global.css';
             <label for='password' class='block text-xs font-semibold mb-1.5'>
               New password
             </label>
-            <input
-              id='password'
-              type='password'
-              required
-              minlength={10}
-              autocomplete='new-password'
-              placeholder='At least 10 characters'
-              class='w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10'
-            />
+            <div class='relative'>
+              <input
+                id='password'
+                type='password'
+                required
+                minlength={10}
+                autocomplete='new-password'
+                placeholder='At least 10 characters'
+                class='w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10'
+              />
+              <button
+                type='button'
+                data-toggle-password='password'
+                aria-label='Show password'
+                class='absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[var(--color-brand)] hover:bg-[var(--color-warm)] transition-colors'>
+                <i class='fa-regular fa-eye text-[12px]' data-eye-icon></i>
+              </button>
+            </div>
+
+            <!-- Strength meter -->
+            <div class='mt-2 flex items-center gap-2' id='strength-wrap'>
+              <div class='flex-1 h-1 rounded-full bg-gray-100 overflow-hidden'>
+                <div
+                  id='strength-bar'
+                  class='h-full w-0 transition-all duration-300'
+                  style='background:#dc2626;'>
+                </div>
+              </div>
+              <span
+                id='strength-label'
+                class='text-[10px] font-semibold text-gray-400 w-12 text-right'
+              ></span>
+            </div>
           </div>
+
           <div>
             <label for='confirm' class='block text-xs font-semibold mb-1.5'>
               Confirm password
             </label>
-            <input
-              id='confirm'
-              type='password'
-              required
-              minlength={10}
-              autocomplete='new-password'
-              placeholder='Type it again'
-              class='w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10'
-            />
+            <div class='relative'>
+              <input
+                id='confirm'
+                type='password'
+                required
+                minlength={10}
+                autocomplete='new-password'
+                placeholder='Type it again'
+                class='w-full px-3.5 py-2.5 pr-11 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10'
+              />
+              <button
+                type='button'
+                data-toggle-password='confirm'
+                aria-label='Show password'
+                class='absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[var(--color-brand)] hover:bg-[var(--color-warm)] transition-colors'>
+                <i class='fa-regular fa-eye text-[12px]' data-eye-icon></i>
+              </button>
+            </div>
+            <p
+              id='match-hint'
+              class='mt-1.5 text-[11px] text-gray-400 flex items-center gap-1.5 h-4'>
+            </p>
           </div>
 
           <button
             type='submit'
+            id='submit-btn'
             class='w-full py-3 bg-[var(--color-brand)] text-white font-bold text-sm rounded-xl hover:bg-[var(--color-brand-hover)] disabled:opacity-60 transition-colors'>
             Set password and sign in
           </button>
@@ -100,9 +139,21 @@ import '../../styles/global.css';
 
       const statusEl = document.getElementById('status');
       const subtitleEl = document.getElementById('subtitle');
-      const formEl = document.getElementById('password-form');
+      const formEl = document.getElementById(
+        'password-form',
+      ) as HTMLFormElement | null;
+      const passwordEl = document.getElementById(
+        'password',
+      ) as HTMLInputElement;
+      const confirmEl = document.getElementById('confirm') as HTMLInputElement;
+      const matchHint = document.getElementById('match-hint');
+      const strengthBar = document.getElementById('strength-bar');
+      const strengthLabel = document.getElementById('strength-label');
+      const submitBtn = document.getElementById(
+        'submit-btn',
+      ) as HTMLButtonElement | null;
 
-      function showStatus(kind, message) {
+      function showStatus(kind: 'success' | 'error', message: string) {
         if (!statusEl) return;
         statusEl.classList.remove('hidden');
         statusEl.className = 'mb-5 text-xs rounded-xl px-4 py-3';
@@ -113,28 +164,103 @@ import '../../styles/global.css';
             'border',
             'border-red-200',
           );
-        } else if (kind === 'success') {
+        } else {
           statusEl.classList.add(
             'bg-emerald-50',
             'text-emerald-900',
             'border',
             'border-emerald-200',
           );
-        } else {
-          statusEl.classList.add(
-            'bg-amber-50',
-            'text-amber-900',
-            'border',
-            'border-amber-200',
-          );
         }
         statusEl.textContent = message;
       }
 
-      // ── Use the base supabase-js client for recovery links ──
-      // Recovery links carry tokens in the URL fragment (#access_token=...).
-      // The base client with detectSessionInUrl + implicit flow reads them
-      // correctly and fires the PASSWORD_RECOVERY / SIGNED_IN events.
+      // ── Password visibility toggles ──────────────────────────
+      document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-toggle-password');
+          const input = document.getElementById(id!) as HTMLInputElement | null;
+          const icon = btn.querySelector(
+            '[data-eye-icon]',
+          ) as HTMLElement | null;
+          if (!input) return;
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          if (icon)
+            icon.className = show
+              ? 'fa-regular fa-eye-slash text-[12px]'
+              : 'fa-regular fa-eye text-[12px]';
+          btn.setAttribute(
+            'aria-label',
+            show ? 'Hide password' : 'Show password',
+          );
+        });
+      });
+
+      // ── Strength meter ──────────────────────────────────────
+      function score(pw: string): number {
+        if (!pw) return 0;
+        let s = 0;
+        if (pw.length >= 10) s++;
+        if (pw.length >= 14) s++;
+        if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
+        if (/\d/.test(pw)) s++;
+        if (/[^A-Za-z0-9]/.test(pw)) s++;
+        return Math.min(s, 4);
+      }
+
+      function renderStrength(pw: string) {
+        const s = score(pw);
+        const widths = ['0%', '25%', '50%', '75%', '100%'];
+        const colors = ['#dc2626', '#dc2626', '#f59e0b', '#10b981', '#059669'];
+        const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        if (strengthBar) {
+          strengthBar.style.width = widths[s];
+          strengthBar.style.background = colors[s];
+        }
+        if (strengthLabel) {
+          strengthLabel.textContent = labels[s];
+          strengthLabel.style.color =
+            s >= 3 ? '#059669' : s === 2 ? '#d97706' : '#9ca3af';
+        }
+      }
+
+      // ── Live match check ────────────────────────────────────
+      function renderMatch() {
+        if (!matchHint) return;
+        const pw = passwordEl.value;
+        const cf = confirmEl.value;
+        if (!cf) {
+          matchHint.textContent = '';
+          matchHint.className =
+            'mt-1.5 text-[11px] text-gray-400 flex items-center gap-1.5 h-4';
+          confirmEl.classList.remove('border-red-300', 'border-emerald-300');
+          return;
+        }
+        if (pw === cf) {
+          matchHint.innerHTML =
+            '<i class="fa-solid fa-check text-emerald-600"></i> <span class="text-emerald-700">Passwords match</span>';
+          matchHint.className =
+            'mt-1.5 text-[11px] text-emerald-700 flex items-center gap-1.5 h-4';
+          confirmEl.classList.remove('border-red-300');
+          confirmEl.classList.add('border-emerald-300');
+        } else {
+          matchHint.innerHTML =
+            '<i class="fa-solid fa-circle-exclamation text-red-500"></i> <span class="text-red-600">Passwords do not match</span>';
+          matchHint.className =
+            'mt-1.5 text-[11px] text-red-600 flex items-center gap-1.5 h-4';
+          confirmEl.classList.remove('border-emerald-300');
+          confirmEl.classList.add('border-red-300');
+        }
+      }
+
+      passwordEl?.addEventListener('input', () => {
+        renderStrength(passwordEl.value);
+        renderMatch();
+      });
+      confirmEl?.addEventListener('input', renderMatch);
+
+      // ── Supabase session handling (unchanged) ───────────────
       const supabase = createClient(
         import.meta.env.PUBLIC_SUPABASE_URL,
         import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
@@ -150,7 +276,7 @@ import '../../styles/global.css';
 
       let activated = false;
 
-      function activate(email) {
+      function activate(email: string) {
         if (activated) return;
         activated = true;
         if (subtitleEl) {
@@ -162,14 +288,15 @@ import '../../styles/global.css';
         if (formEl) formEl.classList.remove('hidden');
       }
 
-      // Primary path: the SDK processes the fragment and fires events.
       supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-          if (session?.user?.email) activate(session.user.email);
+        if (
+          (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') &&
+          session?.user?.email
+        ) {
+          activate(session.user.email);
         }
       });
 
-      // Fallback: poll for a session in case the event fired before we listened.
       const started = Date.now();
       const tick = setInterval(async () => {
         const {
@@ -193,43 +320,36 @@ import '../../styles/global.css';
 
       formEl?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const password = (
-          document.getElementById('password') as HTMLInputElement
-        ).value;
-        const confirm = (document.getElementById('confirm') as HTMLInputElement)
-          .value;
+        const password = passwordEl.value;
+        const confirm = confirmEl.value;
 
         if (password !== confirm) {
           showStatus('error', 'Passwords do not match.');
+          confirmEl.focus();
           return;
         }
         if (password.length < 10) {
           showStatus('error', 'Password must be at least 10 characters.');
+          passwordEl.focus();
           return;
         }
 
-        const btn = formEl.querySelector(
-          'button[type=submit]',
-        ) as HTMLButtonElement | null;
-        if (btn) {
-          btn.disabled = true;
-          btn.textContent = 'Setting password…';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Setting password…';
         }
 
         const { error } = await supabase.auth.updateUser({ password });
         if (error) {
           showStatus('error', error.message);
-          if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Set password and sign in';
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Set password and sign in';
           }
           return;
         }
 
         showStatus('success', 'Password set. Redirecting to sign in…');
-
-        // Sign out of the temporary browser session — the user will now
-        // sign in normally, which establishes the proper SSR cookie session.
         await supabase.auth.signOut();
 
         setTimeout(() => {

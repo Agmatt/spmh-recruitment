@@ -15,6 +15,13 @@ const passwordSet = reason === 'password-set';
     <title>Sign in — SPMH Recruitment Admin</title>
     <meta name='robots' content='noindex, nofollow' />
     <link rel='icon' type='image/png' href='/file.svg' />
+    <link
+      rel='stylesheet'
+      href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
+      integrity='sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=='
+      crossorigin='anonymous'
+      referrerpolicy='no-referrer'
+    />
   </head>
 
   <body class='min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)]'>
@@ -28,7 +35,6 @@ const passwordSet = reason === 'password-set';
           class='absolute inset-0 w-full h-full object-cover opacity-60'
           aria-hidden='true'
         />
-
         <div
           class='absolute inset-0 bg-gradient-to-br from-[#860f0f]/70 via-[#1c1c1e]/60 to-[#1c1c1e]/95'
           aria-hidden='true'>
@@ -44,15 +50,10 @@ const passwordSet = reason === 'password-set';
             <div
               class='w-11 h-11 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center overflow-hidden'>
               <img
-                src='/logos/logo.png'
+                src='/spmh-logo.png'
                 alt='SPMH'
                 class='w-full h-full object-contain p-1'
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
               />
-              <span
-                class='text-white font-black text-lg hidden'
-                style='display:none;'>S</span
-              >
             </div>
             <div>
               <p class='text-white font-bold tracking-tight text-sm'>
@@ -83,18 +84,7 @@ const passwordSet = reason === 'password-set';
         <div class='relative z-10 p-12'>
           <div class='flex items-center gap-6 text-white/60 text-[11px]'>
             <div class='flex items-center gap-2'>
-              <svg
-                class='w-3.5 h-3.5'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-                stroke-width='2.2'>
-                <path
-                  stroke-linecap='round'
-                  stroke-linejoin='round'
-                  d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'
-                ></path>
-              </svg>
+              <i class='fa-solid fa-shield-halved text-[12px]'></i>
               <span>Restricted access</span>
             </div>
             <span class='w-px h-3 bg-white/20'></span>
@@ -106,31 +96,29 @@ const passwordSet = reason === 'password-set';
       <!-- ══ RIGHT — Form panel ═════════════════════════════════ -->
       <main class='flex items-center justify-center px-6 py-12 lg:py-0'>
         <div class='w-full max-w-sm'>
-          <!-- Brand block: logo + name -->
-          <div>
+          <!-- Brand block -->
+          <div class='mb-8 flex justify-center'>
             <div
-              class='w-46 h-46 rounded-2xl mx-auto text-center flex items-center justify-center overflow-hidden'>
+              class='w-20 h-20 rounded-2xl bg-white border border-[var(--color-border-soft)] shadow-sm flex items-center justify-center overflow-hidden'>
               <img
-                src='/gallery/bg.png'
-                alt="St. Paul's Mission Hospital"
-                class='w-full h-full object-contain'
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+                src='/logos/logo.png'
+                alt=''
+                class='w-full h-full object-contain p-2'
               />
             </div>
           </div>
 
-          <div class='mb-8'>
+          <div class='mb-8 text-center'>
             <h2 class='text-3xl font-black tracking-tight mb-2'>Sign in</h2>
             <p class='text-sm text-gray-500'>
               Access the recruitment dashboard.
             </p>
           </div>
 
-          <!-- Idle-logout notice -->
           {
             idleLogout && !errorMsg && (
               <div class='mb-5 flex items-start gap-3 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3'>
-                ...
+                <i class='fa-regular fa-clock mt-0.5' />
                 <span>
                   You were signed out after 10 minutes of inactivity. Please
                   sign in again.
@@ -141,62 +129,27 @@ const passwordSet = reason === 'password-set';
           {
             signedOut && !errorMsg && (
               <div class='mb-5 flex items-start gap-3 text-xs text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3'>
-                <svg
-                  class='w-4 h-4 shrink-0 mt-0.5'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                  stroke-width='2'>
-                  <path
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    d='M5 13l4 4L19 7'
-                  />
-                </svg>
+                <i class='fa-solid fa-check mt-0.5' />
                 <span>
                   You have been signed out. Please sign in again to continue.
                 </span>
               </div>
             )
           }
-
           {
             passwordSet && !errorMsg && (
               <div class='mb-5 flex items-start gap-3 text-xs text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3'>
-                <svg
-                  class='w-4 h-4 shrink-0 mt-0.5'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                  stroke-width='2'>
-                  <path
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    d='M5 13l4 4L19 7'
-                  />
-                </svg>
+                <i class='fa-solid fa-check mt-0.5' />
                 <span>
                   Password set successfully. Sign in below to continue.
                 </span>
               </div>
             )
           }
-          <!-- Error notice -->
           {
             errorMsg && (
               <div class='mb-5 flex items-start gap-3 text-xs text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3'>
-                <svg
-                  class='w-4 h-4 shrink-0 mt-0.5'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                  stroke-width='2'>
-                  <path
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-                  />
-                </svg>
+                <i class='fa-solid fa-circle-exclamation mt-0.5' />
                 <span>{decodeURIComponent(errorMsg)}</span>
               </div>
             )
@@ -234,15 +187,24 @@ const passwordSet = reason === 'password-set';
                   Forgot password?
                 </a>
               </div>
-              <input
-                id='password'
-                name='password'
-                type='password'
-                required
-                autocomplete='current-password'
-                class='w-full px-4 py-3 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/10 transition-all placeholder:text-gray-300'
-                placeholder='••••••••'
-              />
+              <div class='relative'>
+                <input
+                  id='password'
+                  name='password'
+                  type='password'
+                  required
+                  autocomplete='current-password'
+                  class='w-full px-4 py-3 pr-12 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/10 transition-all placeholder:text-gray-300'
+                  placeholder='••••••••'
+                />
+                <button
+                  type='button'
+                  data-toggle-password='password'
+                  aria-label='Show password'
+                  class='absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[var(--color-brand)] hover:bg-[var(--color-warm)] transition-colors'>
+                  <i class='fa-regular fa-eye text-[13px]' data-eye-icon></i>
+                </button>
+              </div>
             </div>
 
             <button
@@ -258,13 +220,13 @@ const passwordSet = reason === 'password-set';
               to your account, use the{' '}
               <a
                 href='/admin/forgot-password'
-                class='text-[11px] font-medium text-[var(--color-brand)] hover:underline'>
+                class='font-medium text-[var(--color-brand)] hover:underline'>
                 password reset
               </a>{' '}
-              or contact the Human Resources Department at{' '}
+              or contact{' '}
               <a
                 href='mailto:ict@spmh.co.ke'
-                class='text-[11px] font-medium text-[var(--color-brand)] hover:underline'>
+                class='font-medium text-[var(--color-brand)] hover:underline'>
                 ict@spmh.co.ke
               </a>
               .
@@ -273,5 +235,29 @@ const passwordSet = reason === 'password-set';
         </div>
       </main>
     </div>
+
+    <script>
+      // ── Password visibility toggle ──────────────────────────
+      document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-toggle-password');
+          const input = document.getElementById(id) as HTMLInputElement | null;
+          const icon = btn.querySelector(
+            '[data-eye-icon]',
+          ) as HTMLElement | null;
+          if (!input) return;
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          if (icon)
+            icon.className = show
+              ? 'fa-regular fa-eye-slash text-[13px]'
+              : 'fa-regular fa-eye text-[13px]';
+          btn.setAttribute(
+            'aria-label',
+            show ? 'Hide password' : 'Show password',
+          );
+        });
+      });
+    </script>
   </body>
 </html>

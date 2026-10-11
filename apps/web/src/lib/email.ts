@@ -138,3 +138,47 @@ export async function sendAdminInvite(params: {
     return { success: false, error };
   }
 }
+export async function sendPasswordReset(params: {
+  to: string;
+  recipientName: string;
+  resetLink: string;
+  requestedAt: string;
+}): Promise<{ success: true } | { success: false; error: unknown }> {
+  try {
+    const result = await resend.emails.send({
+      from,
+      to: params.to,
+      subject: 'Reset your SPMH Recruitment password',
+      html: wrap(`
+        <h1 style="font-size:22px;font-weight:800;margin:0 0 12px;color:#1c1c1e;">
+          Reset your password
+        </h1>
+        <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+          Hi ${escapeHtml(params.recipientName.split(' ')[0] || 'there')},
+        </p>
+        <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 24px;">
+          Someone requested a password reset for your SPMH Recruitment
+          account. If that was you, click the button below to choose a new
+          password. The link expires in one hour.
+        </p>
+        <a href="${params.resetLink}"
+           style="display:inline-block;background:#860f0f;color:#ffffff;font-weight:700;font-size:14px;padding:13px 24px;border-radius:10px;text-decoration:none;">
+          Set a new password
+        </a>
+        <p style="font-size:12px;line-height:1.6;color:#9ca3af;margin:24px 0 0;">
+          Or copy this link into your browser:<br />
+          <span style="word-break:break-all;color:#6b7280;">${params.resetLink}</span>
+        </p>
+        <p style="font-size:12px;line-height:1.6;color:#9ca3af;margin:20px 0 0;padding-top:20px;border-top:1px solid #ece8e1;">
+          <strong style="color:#6b7280;">Didn't request this?</strong> You can
+          safely ignore this email. Your password will remain unchanged. If
+          you're concerned, contact the Human Resources Department at
+          <a href="mailto:info@spmh.co.ke" style="color:#860f0f;">info@spmh.co.ke</a>.
+        </p>
+      `),
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
+  }
+}

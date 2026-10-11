@@ -16,6 +16,8 @@ const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const PUBLIC_ADMIN_PATHS = new Set([
   '/admin/login',
   '/admin/accept-invite',
+  '/admin/forgot-password',
+  '/admin/reset-password',
 ]);
 
 export const onRequest = defineMiddleware(async (context, next) => {

@@ -2,6 +2,10 @@ import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import { supabaseAdmin } from '../../lib/supabase-admin';
 import { sendApplicantConfirmation, sendHrNotification } from '../../lib/email';
+import {
+  normalizeAndValidatePhone,
+  normalizeAndValidateEmail,
+} from '../../lib/validation';
 
 export const prerender = false;
 
@@ -17,8 +21,30 @@ const CONSENT_TEXT_VERSION = 'v1-2026-10';
 const schema = z.object({
   job_id: z.string().uuid(),
   full_name: z.string().trim().min(2).max(100),
-  email: z.string().trim().email().max(200),
-  phone: z.string().trim().max(30).optional().or(z.literal('')),
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Email is required.')
+    .max(200)
+    .superRefine((val, ctx) => {
+      const r = normalizeAndValidateEmail(val);
+      if (!r.ok) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: r.error });
+      }
+    })
+    .transform((val) => normalizeAndValidateEmail(val).normalized ?? val),
+  phone: z
+    .string()
+    .trim()
+    .min(1, 'Phone number is required.')
+    .max(30)
+    .superRefine((val, ctx) => {
+      const r = normalizeAndValidatePhone(val);
+      if (!r.ok) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: r.error });
+      }
+    })
+    .transform((val) => normalizeAndValidatePhone(val).normalized ?? val),
   cover_letter: z.string().trim().max(5000).optional().or(z.literal('')),
   consent: z.literal('true'),
 });
@@ -43,8 +69,13 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (!parsed.success) {
+      const flat = parsed.error.flatten();
+      // Surface the first field error as the top-level message for UX
+      const firstFieldError =
+        Object.values(flat.fieldErrors).flat().find(Boolean) ??
+        'Please check the form and try again.';
       return json(
-        { error: 'Invalid form data', details: parsed.error.flatten() },
+        { error: firstFieldError, details: flat },
         400
       );
     }
@@ -68,13 +99,15 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (jobErr || !job) return json({ error: 'Job not found.' }, 404);
     if (job.status !== 'published') {
-      return json({ error: 'This position is no longer accepting applications.' }, 410);
+      return json(
+        { error: 'This position is no longer accepting applications.' },
+        410
+      );
     }
     if (job.closes_at && new Date(job.closes_at) < new Date()) {
       return json({ error: 'This position has closed.' }, 410);
     }
 
-    // Upload CV to private bucket
     const ext =
       cv.type === 'application/pdf'
         ? 'pdf'
@@ -92,15 +125,13 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: 'Could not upload CV. Please try again.' }, 500);
     }
 
-    // Insert application (service role — RLS already validated nothing here,
-    // we've validated consent + published status above)
     const { data: application, error: insertErr } = await supabaseAdmin
       .from('applications')
       .insert({
         job_posting_id: job.id,
         full_name: parsed.data.full_name,
         email: parsed.data.email,
-        phone: parsed.data.phone || null,
+        phone: parsed.data.phone,
         cover_letter: parsed.data.cover_letter || null,
         cv_path: cvPath,
         consent_given: true,
@@ -113,12 +144,13 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (insertErr || !application) {
       console.error('[apply] DB insert failed:', insertErr);
-      // Roll back the orphan CV
       await supabaseAdmin.storage.from('cvs').remove([cvPath]);
-      return json({ error: 'Could not save your application. Please try again.' }, 500);
+      return json(
+        { error: 'Could not save your application. Please try again.' },
+        500
+      );
     }
 
-    // Log the event
     await supabaseAdmin.from('application_events').insert({
       application_id: application.id,
       event_type: 'submitted',
@@ -126,7 +158,6 @@ export const POST: APIRoute = async ({ request }) => {
       metadata: { source: 'web' },
     });
 
-    // Fire emails (non-blocking failures — don't fail the request if email bounces)
     const hrEmail = import.meta.env.EMAIL_HR_NOTIFY ?? 'recruitment@spmh.co.ke';
 
     await Promise.allSettled([
@@ -140,14 +171,17 @@ export const POST: APIRoute = async ({ request }) => {
         to: hrEmail,
         applicantName: parsed.data.full_name,
         applicantEmail: parsed.data.email,
-        applicantPhone: parsed.data.phone || null,
+        applicantPhone: parsed.data.phone,
         jobTitle: job.title,
         applicationId: application.id,
       }),
     ]).then((results) => {
       results.forEach((r, i) => {
         if (r.status === 'rejected') {
-          console.error(`[apply] email ${i === 0 ? 'applicant' : 'hr'} failed:`, r.reason);
+          console.error(
+            `[apply] email ${i === 0 ? 'applicant' : 'hr'} failed:`,
+            r.reason
+          );
         }
       });
     });

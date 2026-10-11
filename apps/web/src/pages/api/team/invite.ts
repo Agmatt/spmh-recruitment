@@ -1,144 +1,204 @@
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import { createSupabaseServerClient } from '../../../lib/supabase-ssr';
-import { supabaseAdmin } from '../../../lib/supabase-admin';
-import { requireSuperAdmin } from '../../../lib/team-guard';
-import { sendAdminInvite } from '../../../lib/email';
+---
+import '../../styles/global.css';
+---
 
-export const prerender = false;
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Set your password — SPMH Recruitment</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
 
-const Schema = z.object({
-  email: z.string().trim().email().max(200),
-  full_name: z.string().trim().min(2).max(100),
-  role: z.enum(['hr_admin', 'super_admin']),
-});
+  <body class="min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)] flex items-center justify-center px-6 py-10">
+    <div class="w-full max-w-sm">
+      <div class="text-center mb-8">
+        <div class="inline-flex w-14 h-14 rounded-2xl bg-white border border-[var(--color-border-soft)] shadow-sm items-center justify-center mb-4 overflow-hidden">
+          <img src="/spmh-logo.png" alt="" class="w-full h-full object-contain p-2" />
+        </div>
+        <p class="text-[11px] font-bold uppercase tracking-[0.25em] text-[var(--color-brand)]">
+          St. Paul's Mission Hospital
+        </p>
+      </div>
 
-export const POST: APIRoute = async (context) => {
-  const supabase = createSupabaseServerClient(context);
-  const guard = await requireSuperAdmin(supabase);
-  if (!guard.ok) return json({ error: guard.message }, guard.status);
+      <div class="bg-white border border-[var(--color-border-soft)] rounded-2xl p-7 shadow-sm">
+        <h1 class="text-2xl font-black tracking-tight mb-2">Set your password</h1>
+        <p class="text-sm text-gray-500 mb-6" id="subtitle">
+          Verifying your invite link…
+        </p>
 
-  const body = await context.request.json().catch(() => null);
-  const parsed = Schema.safeParse(body);
-  if (!parsed.success) {
-    return json({ error: 'Invalid data', details: parsed.error.flatten() }, 400);
-  }
+        <div id="status" class="hidden mb-5 text-xs rounded-xl px-4 py-3"></div>
 
-  const { email, full_name, role } = parsed.data;
-  const normalizedEmail = email.toLowerCase();
+        <form id="password-form" class="space-y-4 hidden">
+          <div>
+            <label for="password" class="block text-xs font-semibold mb-1.5">
+              New password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              minlength={10}
+              autocomplete="new-password"
+              placeholder="At least 10 characters"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10"
+            />
+          </div>
+          <div>
+            <label for="confirm" class="block text-xs font-semibold mb-1.5">
+              Confirm password
+            </label>
+            <input
+              id="confirm"
+              type="password"
+              required
+              minlength={10}
+              autocomplete="new-password"
+              placeholder="Type it again"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border-soft)] text-sm bg-white outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/10"
+            />
+          </div>
 
-  // 1. Check if an auth user with this email already exists
-  const { data: existingList } = await supabaseAdmin.auth.admin.listUsers({
-    page: 1,
-    perPage: 200,
-  });
-  const existing = existingList?.users.find(
-    (u) => u.email?.toLowerCase() === normalizedEmail
-  );
+          <button
+            type="submit"
+            class="w-full py-3 bg-[var(--color-brand)] text-white font-bold text-sm rounded-xl hover:bg-[var(--color-brand-hover)] disabled:opacity-60 transition-colors"
+          >
+            Set password and sign in
+          </button>
+        </form>
+      </div>
 
-  let userId: string;
+      <p class="text-[11px] text-gray-400 text-center mt-6 leading-relaxed">
+        Link expired or not working? On the
+        <a href="/admin/login" class="underline text-[var(--color-brand)]">login page</a>,
+        click <em>Forgot password?</em> and enter your email to receive a fresh link.
+      </p>
+    </div>
 
-  if (existing) {
-    // User already has an auth account — just grant admin access
-    userId = existing.id;
-  } else {
-    // Create a fresh auth user with a random strong password.
-    // They'll set their own password via the invite email.
-    const tempPassword = crypto.randomUUID() + '-' + crypto.randomUUID();
+    <script>
+      import { createClient } from '@supabase/supabase-js';
 
-    const { data: created, error: createErr } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: normalizedEmail,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: { full_name },
+      const statusEl = document.getElementById('status');
+      const subtitleEl = document.getElementById('subtitle');
+      const formEl = document.getElementById('password-form');
+
+      function showStatus(kind, message) {
+        if (!statusEl) return;
+        statusEl.classList.remove('hidden');
+        statusEl.className = 'mb-5 text-xs rounded-xl px-4 py-3';
+        if (kind === 'error') {
+          statusEl.classList.add('bg-red-50', 'text-red-800', 'border', 'border-red-200');
+        } else if (kind === 'success') {
+          statusEl.classList.add('bg-emerald-50', 'text-emerald-900', 'border', 'border-emerald-200');
+        } else {
+          statusEl.classList.add('bg-amber-50', 'text-amber-900', 'border', 'border-amber-200');
+        }
+        statusEl.textContent = message;
+      }
+
+      // ── Use the base supabase-js client for recovery links ──
+      // Recovery links carry tokens in the URL fragment (#access_token=...).
+      // The base client with detectSessionInUrl + implicit flow reads them
+      // correctly and fires the PASSWORD_RECOVERY / SIGNED_IN events.
+      const supabase = createClient(
+        import.meta.env.PUBLIC_SUPABASE_URL,
+        import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
+        {
+          auth: {
+            detectSessionInUrl: true,
+            flowType: 'implicit',
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+        }
+      );
+
+      let activated = false;
+
+      function activate(email) {
+        if (activated) return;
+        activated = true;
+        if (subtitleEl) {
+          subtitleEl.textContent =
+            'Welcome, ' + email + '. Choose a password to activate your account.';
+        }
+        if (formEl) formEl.classList.remove('hidden');
+      }
+
+      // Primary path: the SDK processes the fragment and fires events.
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+          if (session?.user?.email) activate(session.user.email);
+        }
       });
 
-    if (createErr || !created.user) {
-      console.error('[team/invite] createUser error:', createErr);
-      return json(
-        { error: createErr?.message ?? 'Could not create user' },
-        500
-      );
-    }
+      // Fallback: poll for a session in case the event fired before we listened.
+      const started = Date.now();
+      const tick = setInterval(async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.email) {
+          clearInterval(tick);
+          activate(session.user.email);
+          return;
+        }
+        if (Date.now() - started > 8000) {
+          clearInterval(tick);
+          if (!activated) {
+            showStatus(
+              'error',
+              'This invite link is invalid or has expired. Use "Forgot password?" on the login page to receive a new one.'
+            );
+          }
+        }
+      }, 250);
 
-    userId = created.user.id;
-  }
+      formEl?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const password = (document.getElementById('password') as HTMLInputElement).value;
+        const confirm = (document.getElementById('confirm') as HTMLInputElement).value;
 
-  // 2. Check if they're already an admin
-  const { data: alreadyAdmin } = await supabaseAdmin
-    .from('admins')
-    .select('user_id')
-    .eq('user_id', userId)
-    .maybeSingle();
+        if (password !== confirm) {
+          showStatus('error', 'Passwords do not match.');
+          return;
+        }
+        if (password.length < 10) {
+          showStatus('error', 'Password must be at least 10 characters.');
+          return;
+        }
 
-  if (alreadyAdmin) {
-    return json({ error: 'This person is already a team member.' }, 409);
-  }
+        const btn = formEl.querySelector('button[type=submit]') as HTMLButtonElement | null;
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Setting password…';
+        }
 
-  // 3. Insert into admins
-  const { error: insertErr } = await supabaseAdmin.from('admins').insert({
-    user_id: userId,
-    role,
-    full_name,
-    invited_by: guard.user.id,
-  });
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) {
+          showStatus('error', error.message);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Set password and sign in';
+          }
+          return;
+        }
 
-  if (insertErr) {
-    console.error('[team/invite] insert error:', insertErr);
-    return json({ error: insertErr.message }, 500);
-  }
+        showStatus('success', 'Password set. Redirecting to sign in…');
 
-  // 4. Generate a password-setup link via Supabase
-  const site =
-    import.meta.env.PUBLIC_SITE_URL ?? 'https://recruitment.spmh.co.ke';
+        // Sign out of the temporary browser session — the user will now
+        // sign in normally, which establishes the proper SSR cookie session.
+        await supabase.auth.signOut();
 
-  const { data: linkData, error: linkErr } =
-    await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
-      email: normalizedEmail,
-      options: { redirectTo: `${site}/admin/accept-invite` },
-    });
-
-  if (linkErr || !linkData?.properties?.action_link) {
-    console.error('[team/invite] generateLink error:', linkErr);
-    // User + admin were created — just warn about email
-    return json(
-      {
-        ok: true,
-        warning:
-          'Team member added, but invite email could not be generated. Ask them to use "Forgot password" on the login page.',
-      },
-      200
-    );
-  }
-
-  // 5. Send custom email via Resend
-  const result = await sendAdminInvite({
-    to: normalizedEmail,
-    inviteeName: full_name,
-    inviterName: guard.user.email ?? 'an administrator',
-    setupLink: linkData.properties.action_link,
-  });
-
-  if (!result.success) {
-    console.error('[team/invite] email send failed:', result.error);
-    return json(
-      {
-        ok: true,
-        warning:
-          'Team member added, but the invite email failed to send. Ask them to use "Forgot password" on the login page.',
-      },
-      200
-    );
-  }
-
-  return json({ ok: true }, 200);
-};
-
-function json(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json' },
-  });
-}
+        setTimeout(() => {
+          window.location.href = '/admin/login?reason=password-set';
+        }, 900);
+      });
+    </script>
+  </body>
+</html>

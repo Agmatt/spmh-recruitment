@@ -121,9 +121,15 @@ export async function sendAdminInvite(params: {
            style="display:inline-block;background:#860f0f;color:#ffffff;font-weight:700;font-size:14px;padding:13px 24px;border-radius:10px;text-decoration:none;">
           Set your password
         </a>
-        <p style="font-size:12px;line-height:1.6;color:#9ca3af;margin:24px 0 0;">
+                <p style="font-size:12px;line-height:1.6;color:#9ca3af;margin:24px 0 0;">
           Or copy this link into your browser:<br />
           <span style="word-break:break-all;color:#6b7280;">${params.setupLink}</span>
+        </p>
+        <p style="font-size:12px;line-height:1.6;color:#9ca3af;margin:20px 0 0;padding-top:20px;border-top:1px solid #ece8e1;">
+          <strong style="color:#6b7280;">Link expired?</strong> Open
+          <a href="https://recruitment.spmh.co.ke/admin/login" style="color:#860f0f;text-decoration:underline;">the login page</a>,
+          click <em>Forgot password?</em>, and enter this email address to
+          receive a fresh link.
         </p>
       `),
     });

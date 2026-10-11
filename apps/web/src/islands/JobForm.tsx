@@ -297,7 +297,7 @@ export default function JobForm({
         </button>
       </div>
 
-      <p className="text-xs text-gray-400 leading-relaxed">
+      <p className="text-xs text-gray-500 leading-relaxed">
         Jobs are saved as <strong>drafts</strong>. You can publish them from the Job Postings list
         once you're ready for applicants to see them.
       </p>

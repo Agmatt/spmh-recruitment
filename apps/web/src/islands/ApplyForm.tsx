@@ -212,7 +212,7 @@ export default function ApplyForm({ job }: { job: Job }) {
                     required
                     className="mt-0.5 w-4 h-4 accent-[var(--color-brand)] shrink-0"
                 />
-                <span className="text-xs text-gray-500 leading-relaxed">
+                <span className="text-sm text-gray-500 leading-relaxed">
                     I consent to St. Paul's Mission Hospital processing my personal data
                     for recruitment purposes. I understand my application will be retained
                     for a period consistent with the hospital's{' '}

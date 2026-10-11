@@ -1,6 +1,8 @@
 import { defineMiddleware } from 'astro:middleware';
 import { createSupabaseServerClient } from './lib/supabase-ssr';
 
+// ── CSRF allowlist ──────────────────────────────────────────
+// Only origins on this list may send POST/PUT/PATCH/DELETE.
 const ALLOWED_ORIGINS = [
   'https://recruitment.spmh.co.ke',
   'https://www.spmh.co.ke',
@@ -11,7 +13,7 @@ const ALLOWED_ORIGINS = [
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // ── 1. CSRF protection ───────────────────────────────────
+  // ── 1. CSRF protection for state-changing requests ────────
   if (MUTATING_METHODS.has(context.request.method)) {
     const origin = context.request.headers.get('origin');
     const referer = context.request.headers.get('referer');
@@ -26,12 +28,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
 
     if (requestOrigin && !ALLOWED_ORIGINS.includes(requestOrigin)) {
-      console.warn('[csrf] blocked:', requestOrigin, '->', context.url.pathname);
+      console.warn(
+        '[csrf] blocked:',
+        requestOrigin,
+        '->',
+        context.url.pathname
+      );
       return new Response('Cross-origin request blocked', { status: 403 });
     }
   }
 
-  // ── 2. Admin route protection ────────────────────────────
+  // ── 2. Admin route protection ─────────────────────────────
   const url = new URL(context.request.url);
   const path = url.pathname;
 
@@ -55,7 +62,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return context.redirect('/admin');
   }
 
-  // Fetch admin record for users on admin pages (not login)
   if (user && !isLoginPage) {
     const { data: adminRow } = await supabase
       .from('admins')
@@ -64,7 +70,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
       .maybeSingle();
 
     if (!adminRow) {
-      // Auth user exists but not in admins table — revoke session
       await supabase.auth.signOut();
       return context.redirect(
         '/admin/login?error=' +
@@ -85,5 +90,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.user = user ?? null;
   context.locals.supabase = supabase;
 
-  return next();
+  const response = await next();
+
+  // ── 3. Prevent admin pages being served from browser cache ──
+  // no-store is the flag that excludes pages from Chrome/Firefox
+  // back-forward cache (bfcache). Without it, the back button after
+  // sign-out restores a snapshot of the admin page — no server round
+  // trip, so middleware never runs.
+  response.headers.set(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, private'
+  );
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+
+  return response;
 });

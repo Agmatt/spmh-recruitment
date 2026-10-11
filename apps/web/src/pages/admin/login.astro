@@ -4,6 +4,7 @@ import '../../styles/global.css';
 const errorMsg = Astro.url.searchParams.get('error');
 const reason = Astro.url.searchParams.get('reason');
 const idleLogout = reason === 'idle';
+const signedOut = reason === 'signed-out';
 ---
 
 <html lang='en'>
@@ -128,6 +129,17 @@ const idleLogout = reason === 'idle';
           {
             idleLogout && !errorMsg && (
               <div class='mb-5 flex items-start gap-3 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3'>
+                ...
+                <span>
+                  You were signed out after 10 minutes of inactivity. Please
+                  sign in again.
+                </span>
+              </div>
+            )
+          }
+          {
+            signedOut && !errorMsg && (
+              <div class='mb-5 flex items-start gap-3 text-xs text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3'>
                 <svg
                   class='w-4 h-4 shrink-0 mt-0.5'
                   fill='none'
@@ -137,17 +149,15 @@ const idleLogout = reason === 'idle';
                   <path
                     stroke-linecap='round'
                     stroke-linejoin='round'
-                    d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                    d='M5 13l4 4L19 7'
                   />
                 </svg>
                 <span>
-                  You were signed out after 10 minutes of inactivity. Please
-                  sign in again.
+                  You have been signed out. Please sign in again to continue.
                 </span>
               </div>
             )
           }
-
           <!-- Error notice -->
           {
             errorMsg && (

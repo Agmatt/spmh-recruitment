@@ -92,3 +92,43 @@ function escapeHtml(s: string) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!)
   );
 }
+
+export async function sendAdminInvite(params: {
+  to: string;
+  inviteeName: string;
+  inviterName: string;
+  setupLink: string;
+}): Promise<{ success: true } | { success: false; error: unknown }> {
+  try {
+    const result = await resend.emails.send({
+      from,
+      to: params.to,
+      subject: "You've been invited to the SPMH Recruitment dashboard",
+      html: wrap(`
+        <h1 style="font-size:22px;font-weight:800;margin:0 0 12px;color:#1c1c1e;">
+          Welcome, ${escapeHtml(params.inviteeName.split(' ')[0] || 'there')}.
+        </h1>
+        <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+          ${escapeHtml(params.inviterName)} has invited you to join the
+          recruitment team at St. Paul's Mission Hospital.
+        </p>
+        <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 24px;">
+          Click the button below to set your password. The link expires in
+          one hour. If you weren't expecting this email, you can safely ignore
+          it.
+        </p>
+        <a href="${params.setupLink}"
+           style="display:inline-block;background:#860f0f;color:#ffffff;font-weight:700;font-size:14px;padding:13px 24px;border-radius:10px;text-decoration:none;">
+          Set your password
+        </a>
+        <p style="font-size:12px;line-height:1.6;color:#9ca3af;margin:24px 0 0;">
+          Or copy this link into your browser:<br />
+          <span style="word-break:break-all;color:#6b7280;">${params.setupLink}</span>
+        </p>
+      `),
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
+  }
+}

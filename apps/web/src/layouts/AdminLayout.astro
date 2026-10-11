@@ -3,7 +3,7 @@ import '../styles/global.css';
 
 interface Props {
   title: string;
-  active: 'applications' | 'jobs' | 'volunteers' | 'partnerships';
+  active: 'applications' | 'jobs' | 'volunteers' | 'partnerships' | 'team';
   userEmail?: string;
 }
 
@@ -24,6 +24,8 @@ const initials = displayName
   .join('')
   .toUpperCase();
 
+const isSuperAdmin = Astro.locals.admin?.role === 'super_admin';
+
 const tabs = [
   { key: 'applications' as const, label: 'Applications', href: '/admin' },
   { key: 'jobs' as const, label: 'Job Postings', href: '/admin/jobs' },
@@ -37,6 +39,9 @@ const tabs = [
     label: 'Partnerships',
     href: '/admin/partnerships',
   },
+  ...(isSuperAdmin
+    ? [{ key: 'team' as const, label: 'Team', href: '/admin/team' }]
+    : []),
 ];
 ---
 

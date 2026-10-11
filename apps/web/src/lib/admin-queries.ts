@@ -13,6 +13,17 @@ export type AdminApplication = {
   job_postings: { title: string; slug: string } | null;
 };
 
+export type TeamMember = {
+  user_id: string;
+  email: string;
+  role: 'hr_admin' | 'super_admin';
+  full_name: string | null;
+  invited_by: string | null;
+  invited_at: string;
+  last_sign_in_at: string | null;
+  created_at: string;
+};
+
 export async function listApplications(
   supabase: SupabaseClient
 ): Promise<AdminApplication[]> {
@@ -37,4 +48,13 @@ export async function listJobsForFilter(supabase: SupabaseClient) {
     .select('id, title, slug, status')
     .order('created_at', { ascending: false });
   return data ?? [];
+}
+
+export async function listAdmins(supabase: SupabaseClient): Promise<TeamMember[]> {
+  const { data, error } = await supabase.rpc('list_admins');
+  if (error) {
+    console.error('[admin-queries] listAdmins error:', error);
+    return [];
+  }
+  return (data ?? []) as TeamMember[];
 }

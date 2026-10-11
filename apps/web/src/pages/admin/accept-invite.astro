@@ -18,7 +18,7 @@ import '../../styles/global.css';
   </head>
 
   <body
-    class='min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)] flex items-center justify-center px-6'>
+    class='min-h-screen bg-[var(--color-warm)] text-[var(--color-ink)] flex items-center justify-center px-6 py-10'>
     <div class='w-full max-w-sm'>
       <div class='text-center mb-8'>
         <div
@@ -36,12 +36,12 @@ import '../../styles/global.css';
       </div>
 
       <div
-        class='bg-white border border-[var(--color-border-soft)] rounded-2xl p-7'>
+        class='bg-white border border-[var(--color-border-soft)] rounded-2xl p-7 shadow-sm'>
         <h1 class='text-2xl font-black tracking-tight mb-2'>
           Set your password
         </h1>
         <p class='text-sm text-gray-500 mb-6' id='subtitle'>
-          Choose a password to activate your account.
+          Verifying your invite link…
         </p>
 
         <div id='status' class='hidden mb-5 text-xs rounded-xl px-4 py-3'></div>
@@ -78,20 +78,23 @@ import '../../styles/global.css';
 
           <button
             type='submit'
-            class='w-full py-3 bg-[var(--color-brand)] text-white font-bold text-sm rounded-xl hover:bg-[var(--color-brand-hover)] transition-colors'>
-            Set password and continue
+            class='w-full py-3 bg-[var(--color-brand)] text-white font-bold text-sm rounded-xl hover:bg-[var(--color-brand-hover)] disabled:opacity-60 transition-colors'>
+            Set password and sign in
           </button>
         </form>
       </div>
 
       <p class='text-[11px] text-gray-400 text-center mt-6 leading-relaxed'>
-        Link expired? Ask your super admin to send a new invite, or use
-        <a href='/admin/login' class='underline'>the login page</a>.
+        Link expired or not working? On the
+        <a href='/admin/login' class='underline text-[var(--color-brand)]'
+          >login page</a
+        >, click <em>Forgot password?</em> and enter your email to receive a fresh
+        link.
       </p>
     </div>
 
     <script>
-      import { createBrowserClient } from '@supabase/ssr';
+      import { createClient } from '@supabase/supabase-js';
 
       const statusEl = document.getElementById('status');
       const subtitleEl = document.getElementById('subtitle');
@@ -126,44 +129,73 @@ import '../../styles/global.css';
         statusEl.textContent = message;
       }
 
-      const supabase = createBrowserClient(
+      // ── Use the base supabase-js client for recovery links ──
+      // Recovery links carry tokens in the URL fragment (#access_token=...).
+      // The base client with detectSessionInUrl + implicit flow reads them
+      // correctly and fires the PASSWORD_RECOVERY / SIGNED_IN events.
+      const supabase = createClient(
         import.meta.env.PUBLIC_SUPABASE_URL,
         import.meta.env.PUBLIC_SUPABASE_ANON_KEY,
         {
           auth: {
             detectSessionInUrl: true,
-            flowType: 'pkce',
+            flowType: 'implicit',
+            persistSession: false,
+            autoRefreshToken: false,
           },
         },
       );
 
-      // Wait briefly for supabase-js to consume the invite/recovery tokens
-      // embedded in the URL fragment.
-      let waited = 0;
+      let activated = false;
+
+      function activate(email) {
+        if (activated) return;
+        activated = true;
+        if (subtitleEl) {
+          subtitleEl.textContent =
+            'Welcome, ' +
+            email +
+            '. Choose a password to activate your account.';
+        }
+        if (formEl) formEl.classList.remove('hidden');
+      }
+
+      // Primary path: the SDK processes the fragment and fires events.
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+          if (session?.user?.email) activate(session.user.email);
+        }
+      });
+
+      // Fallback: poll for a session in case the event fired before we listened.
+      const started = Date.now();
       const tick = setInterval(async () => {
-        waited += 300;
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (session) {
+        if (session?.user?.email) {
           clearInterval(tick);
-          subtitleEl.textContent = `Welcome, ${session.user.email}. Choose a password to activate your account.`;
-          formEl.classList.remove('hidden');
+          activate(session.user.email);
           return;
         }
-        if (waited >= 6000) {
+        if (Date.now() - started > 8000) {
           clearInterval(tick);
-          showStatus(
-            'error',
-            'We could not find a valid invite link. It may have expired. Ask your super admin to send a new one.',
-          );
+          if (!activated) {
+            showStatus(
+              'error',
+              'This invite link is invalid or has expired. Use "Forgot password?" on the login page to receive a new one.',
+            );
+          }
         }
-      }, 300);
+      }, 250);
 
       formEl?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const password = document.getElementById('password').value;
-        const confirm = document.getElementById('confirm').value;
+        const password = (
+          document.getElementById('password') as HTMLInputElement
+        ).value;
+        const confirm = (document.getElementById('confirm') as HTMLInputElement)
+          .value;
 
         if (password !== confirm) {
           showStatus('error', 'Passwords do not match.');
@@ -174,7 +206,9 @@ import '../../styles/global.css';
           return;
         }
 
-        const btn = formEl.querySelector('button[type=submit]');
+        const btn = formEl.querySelector(
+          'button[type=submit]',
+        ) as HTMLButtonElement | null;
         if (btn) {
           btn.disabled = true;
           btn.textContent = 'Setting password…';
@@ -185,15 +219,20 @@ import '../../styles/global.css';
           showStatus('error', error.message);
           if (btn) {
             btn.disabled = false;
-            btn.textContent = 'Set password and continue';
+            btn.textContent = 'Set password and sign in';
           }
           return;
         }
 
-        showStatus('success', 'Password set. Redirecting to your dashboard…');
+        showStatus('success', 'Password set. Redirecting to sign in…');
+
+        // Sign out of the temporary browser session — the user will now
+        // sign in normally, which establishes the proper SSR cookie session.
+        await supabase.auth.signOut();
+
         setTimeout(() => {
-          window.location.href = '/admin';
-        }, 800);
+          window.location.href = '/admin/login?reason=password-set';
+        }, 900);
       });
     </script>
   </body>

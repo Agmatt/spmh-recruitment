@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import { supabaseAdmin } from '../../lib/supabase-admin';
-import { sendApplicantConfirmation, sendHrNotification } from '../../lib/email';
+import { sendApplicantConfirmation } from '../../lib/email';
 import {
   normalizeAndValidatePhone,
   normalizeAndValidateEmail,
@@ -158,33 +158,16 @@ export const POST: APIRoute = async ({ request }) => {
       metadata: { source: 'web' },
     });
 
-    const hrEmail = import.meta.env.EMAIL_HR_NOTIFY ?? 'recruitment@spmh.co.ke';
-
-    await Promise.allSettled([
-      sendApplicantConfirmation({
-        to: parsed.data.email,
-        applicantName: parsed.data.full_name,
-        jobTitle: job.title,
-        jobSlug: job.slug,
-      }),
-      sendHrNotification({
-        to: hrEmail,
-        applicantName: parsed.data.full_name,
-        applicantEmail: parsed.data.email,
-        applicantPhone: parsed.data.phone,
-        jobTitle: job.title,
-        applicationId: application.id,
-      }),
-    ]).then((results) => {
-      results.forEach((r, i) => {
-        if (r.status === 'rejected') {
-          console.error(
-            `[apply] email ${i === 0 ? 'applicant' : 'hr'} failed:`,
-            r.reason
-          );
-        }
-      });
-    });
+    // Only the applicant receives an instant confirmation.
+    // HR reviews applications in the admin dashboard (no email notification).
+    await sendApplicantConfirmation({
+      to: parsed.data.email,
+      applicantName: parsed.data.full_name,
+      jobTitle: job.title,
+      jobSlug: job.slug,
+    }).catch((err) => {
+      console.error('[apply] applicant confirmation failed:', err);
+    });;
 
     return json({ ok: true, application_id: application.id });
   } catch (err) {

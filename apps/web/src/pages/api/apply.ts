@@ -45,8 +45,11 @@ const schema = z.object({
       }
     })
     .transform((val) => normalizeAndValidatePhone(val).normalized ?? val),
-  cover_letter: z.string().trim().max(5000).optional().or(z.literal('')),
-  consent: z.literal('true'),
+  cover_letter: z
+    .string()
+    .trim()
+    .min(20, 'Cover letter must be at least 20 characters.')
+    .max(5000),  consent: z.literal('true'),
 });
 
 const json = (body: unknown, status = 200) =>
@@ -132,7 +135,7 @@ export const POST: APIRoute = async ({ request }) => {
         full_name: parsed.data.full_name,
         email: parsed.data.email,
         phone: parsed.data.phone,
-        cover_letter: parsed.data.cover_letter || null,
+        cover_letter: parsed.data.cover_letter,
         cv_path: cvPath,
         consent_given: true,
         consent_text_version: CONSENT_TEXT_VERSION,

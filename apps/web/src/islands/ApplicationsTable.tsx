@@ -244,9 +244,24 @@ export default function ApplicationsTable({
                                             <td className="px-5 py-3.5">
                                                 <a
                                                     href={`/admin/applications/${a.id}`}
-                                                    className="text-sm font-semibold text-[var(--color-ink)] hover:text-[var(--color-brand)] hover:underline transition-colors"
+                                                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-brand)] underline decoration-1 underline-offset-4 decoration-[var(--color-brand)]/40 hover:decoration-[var(--color-brand)] hover:decoration-2 transition-all"
+                                                    title="Open application"
                                                 >
                                                     {a.full_name}
+                                                    <svg
+                                                        className="w-3 h-3 opacity-60"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                        strokeWidth={2.5}
+                                                        aria-hidden="true"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M9 5l7 7-7 7"
+                                                        />
+                                                    </svg>
                                                 </a>
                                             </td>
                                             <td className="px-5 py-3.5">

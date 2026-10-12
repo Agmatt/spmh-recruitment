@@ -182,3 +182,200 @@ export async function sendPasswordReset(params: {
     return { success: false, error };
   }
 }
+// ── Status update emails ─────────────────────────────────
+// Sent to applicants when their status changes. Only statuses that
+// mean something to the applicant trigger an email.
+
+type StatusEmailContext = {
+  to: string;
+  applicantName: string;
+  jobTitle: string;
+  jobSlug: string;
+};
+
+type StatusContent = {
+  subject: string;
+  heading: string;
+  body: string;
+  ctaLabel?: string;
+  showClosing?: boolean;
+};
+
+function statusContentFor(
+  status: string,
+  ctx: StatusEmailContext
+): StatusContent | null {
+  const first = ctx.applicantName.split(' ')[0] || 'there';
+
+  switch (status) {
+    case 'shortlisted':
+      return {
+        subject: `You've been shortlisted — ${ctx.jobTitle}`,
+        heading: 'You have been shortlisted',
+        body: `
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Dear ${escapeHtml(first)},
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Thank you for your application for the position of
+            <strong>${escapeHtml(ctx.jobTitle)}</strong> at St. Paul's Mission
+            Hospital.
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            We are pleased to inform you that your application has been
+            <strong>shortlisted</strong>. Our Human Resources Department will
+            be in touch shortly with details about the next stage of the
+            recruitment process.
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 24px;">
+            Please keep your contact details available. If your circumstances
+            change, kindly notify us as soon as possible.
+          </p>
+        `,
+        showClosing: true,
+      };
+
+    case 'interview':
+      return {
+        subject: `Interview invitation — ${ctx.jobTitle}`,
+        heading: 'Interview invitation',
+        body: `
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Dear ${escapeHtml(first)},
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Following your application for
+            <strong>${escapeHtml(ctx.jobTitle)}</strong>, we would like to
+            invite you to an interview.
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 24px;">
+            Our Human Resources Department will contact you separately with
+            the date, time, and venue. If you have any questions in the
+            meantime, please reply to this email.
+          </p>
+        `,
+        showClosing: true,
+      };
+
+    case 'offer':
+      return {
+        subject: `Offer of employment — ${ctx.jobTitle}`,
+        heading: 'Offer of employment',
+        body: `
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Dear ${escapeHtml(first)},
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Following your application and interview for the position of
+            <strong>${escapeHtml(ctx.jobTitle)}</strong>, we are pleased to
+            extend an offer of employment to you.
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 24px;">
+            Our Human Resources Department will contact you with the formal
+            offer letter and next steps.
+          </p>
+        `,
+        showClosing: true,
+      };
+
+    case 'hired':
+      return {
+        subject: `Welcome to St. Paul's Mission Hospital — ${ctx.jobTitle}`,
+        heading: "Welcome to the team",
+        body: `
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Dear ${escapeHtml(first)},
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            On behalf of the entire team at St. Paul's Mission Hospital, welcome.
+            We are delighted that you will be joining us as our new
+            <strong>${escapeHtml(ctx.jobTitle)}</strong>.
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 24px;">
+            Our Human Resources Department will be in touch with your
+            onboarding schedule and any documents we need from you.
+          </p>
+        `,
+        showClosing: true,
+      };
+
+    case 'rejected':
+      return {
+        subject: `Update on your application — ${ctx.jobTitle}`,
+        heading: 'Thank you for your application',
+        body: `
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Dear ${escapeHtml(first)},
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            Thank you for your interest in the position of
+            <strong>${escapeHtml(ctx.jobTitle)}</strong> at St. Paul's Mission
+            Hospital, and for the time you invested in your application.
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 16px;">
+            After careful review, we have decided not to progress your
+            application further on this occasion. This decision does not
+            reflect on your qualifications — we simply received a strong field
+            of candidates for this role.
+          </p>
+          <p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 24px;">
+            We encourage you to apply for future positions that match your
+            experience. We wish you every success in your career.
+          </p>
+        `,
+        showClosing: true,
+      };
+
+    case 'withdrawn':
+      // No email for withdrawn — the applicant chose to withdraw.
+      return null;
+
+    // pending, reviewing → no applicant-facing email
+    default:
+      return null;
+  }
+}
+
+export async function sendStatusUpdate(
+  status: string,
+  ctx: StatusEmailContext
+): Promise<{ success: true } | { success: false; error: unknown } | { skipped: true }> {
+  const content = statusContentFor(status, ctx);
+  if (!content) return { skipped: true };
+
+  const site = import.meta.env.PUBLIC_SITE_URL ?? 'https://recruitment.spmh.co.ke';
+
+  try {
+    const result = await resend.emails.send({
+      from,
+      to: ctx.to,
+      subject: content.subject,
+      html: wrap(`
+        <h1 style="font-size:22px;font-weight:800;margin:0 0 20px;color:#1c1c1e;">
+          ${content.heading}
+        </h1>
+        ${content.body}
+        ${
+          content.showClosing
+            ? `
+          <p style="font-size:14px;line-height:1.7;color:#6b7280;margin:24px 0 0;padding-top:20px;border-top:1px solid #ece8e1;">
+            Kind regards,<br />
+            <strong style="color:#1c1c1e;">Human Resources Department</strong><br />
+            St. Paul's Mission Hospital
+          </p>
+        `
+            : ''
+        }
+        <p style="font-size:11px;color:#9ca3af;margin:24px 0 0;">
+          You are receiving this email because you applied for a position
+          through the St. Paul's Mission Hospital recruitment portal. For
+          questions, contact
+          <a href="mailto:${from.match(/<(.+)>/)?.[1] ?? 'recruitment@spmh.co.ke'}" style="color:#860f0f;">recruitment@spmh.co.ke</a>.
+        </p>
+      `),
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
+  }
+}

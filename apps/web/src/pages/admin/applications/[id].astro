@@ -1,0 +1,76 @@
+---
+import { createSupabaseServerClient } from '../../../lib/supabase-ssr';
+import { createClient } from '@supabase/supabase-js';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import ApplicationDetail from '../../../islands/ApplicationDetail.tsx';
+import '../../../styles/global.css';
+
+const user = Astro.locals.user;
+const supabase = createSupabaseServerClient(Astro);
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin');
+
+const { data: app, error } = await supabase
+  .from('applications')
+  .select(
+    `
+    id, full_name, email, phone, status, cover_letter, notes, cv_path, created_at,
+    job_postings ( title, slug )
+  `,
+  )
+  .eq('id', id)
+  .maybeSingle();
+
+if (error || !app) return Astro.redirect('/admin');
+
+const { data: rawEvents } = await supabase
+  .from('application_events')
+  .select(
+    'id, event_type, from_status, to_status, metadata, created_at, actor_id',
+  )
+  .eq('application_id', id)
+  .order('created_at', { ascending: true });
+
+const actorIds = Array.from(
+  new Set((rawEvents ?? []).map((r) => r.actor_id).filter(Boolean)),
+) as string[];
+
+const emailMap = new Map<string, string>();
+if (actorIds.length > 0) {
+  const admin = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL,
+    import.meta.env.SUPABASE_SERVICE_ROLE_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+  for (const uid of actorIds) {
+    const { data: u } = await admin.auth.admin.getUserById(uid);
+    if (u?.user?.email) emailMap.set(uid, u.user.email);
+  }
+}
+
+const events = (rawEvents ?? []).map((r) => ({
+  id: r.id,
+  event_type: r.event_type,
+  from_status: r.from_status,
+  to_status: r.to_status,
+  metadata: r.metadata ?? {},
+  created_at: r.created_at,
+  actor_email: r.actor_id ? (emailMap.get(r.actor_id) ?? null) : null,
+}));
+---
+
+<AdminLayout
+  title={`${app.full_name} — Application`}
+  active='applications'
+  userEmail={user?.email ?? ''}>
+  <div class='mb-6'>
+    <a
+      href='/admin'
+      class='text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand)] hover:opacity-80'>
+      ← All applications
+    </a>
+  </div>
+
+  <ApplicationDetail client:load initial={app} initialEvents={events} />
+</AdminLayout>

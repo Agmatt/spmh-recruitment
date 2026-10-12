@@ -161,10 +161,12 @@ export default function ApplyForm({ job }: { job: Job }) {
                 {phoneTouched && phoneError && <FieldError msg={phoneError} />}
             </Field>
 
-            <Field label="Cover letter" hint="Optional · max 5000 characters">
+            <Field label="Cover letter" required hint="Max 5000 characters">
                 <textarea
                     name="cover_letter"
                     rows={6}
+                    required
+                    minLength={20}
                     maxLength={5000}
                     className={`${inputCls} resize-y`}
                     placeholder="Tell us briefly why you're a good fit for this role."

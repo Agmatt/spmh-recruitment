@@ -173,7 +173,7 @@ export default function ApplyForm({ job }: { job: Job }) {
                 />
             </Field>
 
-            <Field label="CV / Résumé" required hint="PDF, DOC, or DOCX · max 5 MB">
+            <Field label="CV / Résumé" required hint="PDF only · max 5 MB">
                 <label className="flex items-center gap-4 border border-dashed border-[var(--color-border-soft)] rounded-xl px-4 py-4 cursor-pointer hover:border-[var(--color-brand)] transition-colors">
                     <svg className="w-6 h-6 text-[var(--color-brand)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
@@ -195,7 +195,7 @@ export default function ApplyForm({ job }: { job: Job }) {
                         type="file"
                         name="cv"
                         required
-                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        accept=".pdf,application/pdf"
                         className="sr-only"
                         onChange={(e) => {
                             const f = e.currentTarget.files?.[0];

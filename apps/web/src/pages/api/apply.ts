@@ -10,11 +10,7 @@ import {
 export const prerender = false;
 
 const MAX_CV_BYTES = 5 * 1024 * 1024;
-const ALLOWED_MIME = new Set([
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-]);
+const ALLOWED_MIME = new Set(['application/pdf']);
 
 const CONSENT_TEXT_VERSION = 'v1-2026-10';
 
@@ -49,7 +45,8 @@ const schema = z.object({
     .string()
     .trim()
     .min(20, 'Cover letter must be at least 20 characters.')
-    .max(5000),  consent: z.literal('true'),
+    .max(5000),
+  consent: z.literal('true'),
 });
 
 const json = (body: unknown, status = 200) =>
@@ -77,10 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
       const firstFieldError =
         Object.values(flat.fieldErrors).flat().find(Boolean) ??
         'Please check the form and try again.';
-      return json(
-        { error: firstFieldError, details: flat },
-        400
-      );
+      return json({ error: firstFieldError, details: flat }, 400);
     }
 
     const cv = form.get('cv');
@@ -91,7 +85,7 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: 'CV must be 5 MB or smaller.' }, 400);
     }
     if (!ALLOWED_MIME.has(cv.type)) {
-      return json({ error: 'CV must be PDF, DOC, or DOCX.' }, 400);
+      return json({ error: 'CV must be a PDF file.' }, 400);
     }
 
     const { data: job, error: jobErr } = await supabaseAdmin
@@ -104,19 +98,14 @@ export const POST: APIRoute = async ({ request }) => {
     if (job.status !== 'published') {
       return json(
         { error: 'This position is no longer accepting applications.' },
-        410
+        410,
       );
     }
     if (job.closes_at && new Date(job.closes_at) < new Date()) {
       return json({ error: 'This position has closed.' }, 410);
     }
 
-    const ext =
-      cv.type === 'application/pdf'
-        ? 'pdf'
-        : cv.type === 'application/msword'
-          ? 'doc'
-          : 'docx';
+    const ext = 'pdf';
     const cvPath = `${job.id}/${crypto.randomUUID()}.${ext}`;
 
     const { error: uploadErr } = await supabaseAdmin.storage
@@ -150,7 +139,7 @@ export const POST: APIRoute = async ({ request }) => {
       await supabaseAdmin.storage.from('cvs').remove([cvPath]);
       return json(
         { error: 'Could not save your application. Please try again.' },
-        500
+        500,
       );
     }
 
@@ -170,7 +159,7 @@ export const POST: APIRoute = async ({ request }) => {
       jobSlug: job.slug,
     }).catch((err) => {
       console.error('[apply] applicant confirmation failed:', err);
-    });;
+    });
 
     return json({ ok: true, application_id: application.id });
   } catch (err) {

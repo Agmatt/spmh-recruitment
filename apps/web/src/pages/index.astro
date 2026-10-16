@@ -53,6 +53,7 @@ const preparedJobs = jobs.map((job) => {
     departmentLabel: job.departments?.label ?? null,
     employmentLabel:
       employmentLabels[job.employment_type] ?? job.employment_type,
+    vacancies_needed: job.vacancies_needed ?? 1,
     isClosingSoon,
     daysLeft,
     postedLabel,

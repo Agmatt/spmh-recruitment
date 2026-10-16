@@ -17,6 +17,7 @@ type JobInitial = {
   salary_max: number | null;
   salary_currency: string;
   salary_period: string;
+  vacancies_needed: number;
   closes_at: string | null;
 };
 
@@ -84,6 +85,7 @@ export default function JobForm({
       salary_max: fd.get('salary_max') ? Number(fd.get('salary_max')) : null,
       salary_currency: String(fd.get('salary_currency') ?? 'KES').trim(),
       salary_period: String(fd.get('salary_period') ?? 'month'),
+      vacancies_needed: Number(fd.get('vacancies_needed')) || 1,
       closes_at: String(fd.get('closes_at') ?? '') || null,
     };
 
@@ -175,6 +177,23 @@ export default function JobForm({
             defaultValue={initial?.location ?? 'Homa Bay, Kenya'}
             required
             maxLength={120}
+            className={inputCls}
+          />
+        </Field>
+
+        <Field
+          label="Number of positions available"
+          required
+          hint="How many people are you hiring for this role?"
+        >
+          <input
+            type="number"
+            name="vacancies_needed"
+            defaultValue={initial?.vacancies_needed ?? 1}
+            required
+            min={1}
+            max={100}
+            step={1}
             className={inputCls}
           />
         </Field>

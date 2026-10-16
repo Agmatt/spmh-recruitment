@@ -1,0 +1,11 @@
+node_modules
+.pnpm-store
+.turbo
+.astro
+dist
+.vercel
+.env
+.env.*
+*.log
+.DS_Store
+README.md

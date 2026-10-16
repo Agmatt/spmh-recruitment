@@ -1,0 +1,7 @@
+# Build Outputs
+
+.next/ out/ build/ dist/ .astro/ .pnpm-store/
+
+# Logs (any)
+
+*.log

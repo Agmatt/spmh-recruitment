@@ -27,6 +27,7 @@ const jobs = await listAllJobs(supabase);
       status: j.status,
       employment_type: j.employment_type,
       location: j.location,
+      vacancies_needed: j.vacancies_needed,
       created_at: j.created_at,
       published_at: j.published_at,
       departments: j.departments ? { label: j.departments.label } : null,

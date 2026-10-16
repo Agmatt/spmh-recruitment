@@ -6,9 +6,20 @@ export const prerender = false;
 
 const Schema = z.object({
   title: z.string().trim().min(3).max(200),
-  slug: z.string().trim().min(3).max(100).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .trim()
+    .min(3)
+    .max(100)
+    .regex(/^[a-z0-9-]+$/),
   department_id: z.string().uuid().nullable().optional(),
-  employment_type: z.enum(['full_time', 'part_time', 'contract', 'internship', 'locum']),
+  employment_type: z.enum([
+    'full_time',
+    'part_time',
+    'contract',
+    'internship',
+    'locum',
+  ]),
   location: z.string().trim().min(2).max(120),
   summary: z.string().trim().max(500).optional().or(z.literal('')),
   description_md: z.string().trim().min(10),
@@ -17,6 +28,7 @@ const Schema = z.object({
   salary_max: z.coerce.number().int().positive().nullable().optional(),
   salary_currency: z.string().trim().max(8).default('KES'),
   salary_period: z.string().trim().max(16).default('month'),
+  vacancies_needed: z.coerce.number().int().min(1).max(100).default(1),
   closes_at: z.string().optional().or(z.literal('')),
 });
 
@@ -51,6 +63,7 @@ export const POST: APIRoute = async (context) => {
       salary_max: d.salary_max ?? null,
       salary_currency: d.salary_currency || 'KES',
       salary_period: d.salary_period || 'month',
+      vacancies_needed: d.vacancies_needed,
       closes_at: d.closes_at || null,
       status: 'draft',
       created_by: user.id,

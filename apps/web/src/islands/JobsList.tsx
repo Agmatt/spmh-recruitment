@@ -7,6 +7,7 @@ type Job = {
     status: 'draft' | 'published' | 'archived' | 'closed';
     employment_type: string;
     location: string;
+    vacancies_needed: number;
     created_at: string;
     published_at: string | null;
     departments: { label: string } | null;
@@ -146,7 +147,16 @@ export default function JobsList({ initialJobs }: { initialJobs: Job[] }) {
                                         </div>
                                         <p className="text-xs text-gray-500">
                                             {j.departments?.label ?? 'No department'} ·{' '}
-                                            {EMPLOYMENT_LABEL[j.employment_type] ?? j.employment_type} · {j.location}
+                                            {EMPLOYMENT_LABEL[j.employment_type] ?? j.employment_type} ·{' '}
+                                            {j.location}
+                                            {j.vacancies_needed > 1 && (
+                                                <>
+                                                    {' · '}
+                                                    <span className="text-[#860f0f] font-semibold">
+                                                        {j.vacancies_needed} positions
+                                                    </span>
+                                                </>
+                                            )}
                                         </p>
                                         <p className="text-[11px] text-gray-400 mt-2 font-mono">/jobs/{j.slug}</p>
                                     </div>

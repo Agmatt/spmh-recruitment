@@ -15,6 +15,7 @@ export type AdminJob = {
   salary_max: number | null;
   salary_currency: string | null;
   salary_period: string | null;
+  vacancies_needed: number;
   published_at: string | null;
   closes_at: string | null;
   created_at: string;
@@ -25,13 +26,15 @@ export type AdminJob = {
 export async function listAllJobs(supabase: SupabaseClient): Promise<AdminJob[]> {
   const { data, error } = await supabase
     .from('job_postings')
-    .select(`
+    .select(
+      `
       id, slug, title, status, employment_type, location, summary,
       description_md, requirements_md, department_id,
-      salary_min, salary_max, salary_currency, salary_period,
+      salary_min, salary_max, salary_currency, salary_period, vacancies_needed,
       published_at, closes_at, created_at, updated_at,
       departments ( id, slug, label )
-    `)
+    `,
+    )
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -47,13 +50,15 @@ export async function getJobById(
 ): Promise<AdminJob | null> {
   const { data, error } = await supabase
     .from('job_postings')
-    .select(`
+    .select(
+      `
       id, slug, title, status, employment_type, location, summary,
       description_md, requirements_md, department_id,
-      salary_min, salary_max, salary_currency, salary_period,
+      salary_min, salary_max, salary_currency, salary_period, vacancies_needed,
       published_at, closes_at, created_at, updated_at,
       departments ( id, slug, label )
-    `)
+    `,
+    )
     .eq('id', id)
     .maybeSingle();
 

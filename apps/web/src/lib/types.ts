@@ -24,6 +24,7 @@ export interface JobPosting {
   salary_max: number | null;
   salary_currency: string | null;
   salary_period: string | null;
+  vacancies_needed: number;
   status: JobStatus;
   published_at: string | null;
   closes_at: string | null;

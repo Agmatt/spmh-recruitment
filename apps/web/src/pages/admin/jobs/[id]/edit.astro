@@ -59,6 +59,7 @@ if (!job) return Astro.redirect('/admin/jobs');
       salary_max: job.salary_max,
       salary_currency: job.salary_currency ?? 'KES',
       salary_period: job.salary_period ?? 'month',
+      vacancies_needed: job.vacancies_needed,
       closes_at: job.closes_at,
     }}
     departments={departments.map((d) => ({

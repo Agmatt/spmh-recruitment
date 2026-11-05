@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase';
 
 const SITE = 'https://recruitment.spmh.co.ke';
 
-// Public static pages that exist in src/pages/
 const staticPaths = [
   '/',
   '/who-we-are',
@@ -13,11 +12,14 @@ const staticPaths = [
 ];
 
 export const GET: APIRoute = async () => {
-  // Same filter the job detail page uses, so every listed URL actually loads
+  const nowIso = new Date().toISOString();
+
+  // Only jobs that are published AND not past their closing date
   const { data: jobs, error } = await supabase
     .from('job_postings')
     .select('slug, published_at, created_at')
-    .eq('status', 'published');
+    .eq('status', 'published')
+    .or(`closes_at.is.null,closes_at.gte.${nowIso}`);
 
   if (error) {
     return new Response('Sitemap temporarily unavailable', { status: 500 });

@@ -26,6 +26,10 @@ if (error || !job) {
   return Astro.redirect('/404');
 }
 
+const isClosed = job.closes_at
+  ? new Date(job.closes_at).getTime() < Date.now()
+  : false;
+
 // Markdown → HTML. Content is authored only by authenticated HR admins,
 // so we treat it as trusted. If we ever open editing to non-admins,
 // add sanitize-html here.
@@ -162,6 +166,21 @@ const closesDate = job.closes_at
               {job.title}
             </h1>
             {
+              isClosed && (
+                <div class='mt-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-900'>
+                  <p class='font-semibold'>This position has closed.</p>
+                  <p class='mt-1'>
+                    Applications for this role are no longer being accepted. See
+                    our{' '}
+                    <a href='/' class='underline font-semibold'>
+                      other openings
+                    </a>
+                    .
+                  </p>
+                </div>
+              )
+            }
+            {
               job.summary && (
                 <p class='mt-4 text-base text-gray-600 leading-relaxed'>
                   {job.summary}
@@ -224,11 +243,19 @@ const closesDate = job.closes_at
             </dl>
           </div>
 
-          <a
-            href={`/apply/${job.slug}`}
-            class='block w-full text-center px-6 py-4 bg-[var(--color-brand)] text-white font-bold text-sm rounded-xl hover:bg-[var(--color-brand-hover)] transition-colors'>
-            Apply for this role
-          </a>
+          {
+            isClosed ? (
+              <div class='block w-full text-center px-6 py-4 bg-gray-200 text-gray-500 font-bold text-sm rounded-xl'>
+                Applications closed
+              </div>
+            ) : (
+              <a
+                href={`/apply/${job.slug}`}
+                class='block w-full text-center px-6 py-4 bg-[var(--color-brand)] text-white font-bold text-sm rounded-xl hover:bg-[var(--color-brand-hover)] transition-colors'>
+                Apply for this role
+              </a>
+            )
+          }
 
           <p class='text-xs text-gray-400 text-center leading-relaxed'>
             Applications are reviewed by our HR team. You'll receive an email
